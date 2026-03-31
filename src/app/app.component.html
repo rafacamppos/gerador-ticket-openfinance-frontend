@@ -1,0 +1,82 @@
+<div class="portal-shell">
+  @if (!isLoginRoute) {
+    <header class="portal-header">
+      <div class="portal-header__inner">
+        <a class="portal-brand" [routerLink]="homeRoute" aria-label="Gerenciador de Ticket">
+          <img
+            class="portal-brand__logo"
+            width="173"
+            height="40"
+            src="/img/icone_oficial_ticketnow.png"
+            alt="Gerenciador de Ticket"
+          />
+        </a>
+
+        <div class="portal-header__right">
+          <div class="environment-selector">
+            <label class="environment-selector__label" for="open-finance-environment">
+              Ambiente
+            </label>
+            <select
+              id="open-finance-environment"
+              class="environment-selector__select"
+              [value]="selectedEnvironmentKey"
+              [disabled]="isUpdatingEnvironment || !environments.length"
+              (change)="updateEnvironment($event)"
+            >
+              @for (environment of environments; track environment.key) {
+                <option [value]="environment.key">{{ environment.label }}</option>
+              }
+            </select>
+            @if (environmentError) {
+              <span class="environment-selector__error">{{ environmentError }}</span>
+            }
+          </div>
+          <div class="user-panel">
+            <button class="user-panel__trigger" type="button" aria-label="Usuário logado">
+              <span class="user-panel__avatar" aria-hidden="true"></span>
+              <span class="user-panel__name">{{ userName }}</span>
+            </button>
+            <button class="user-panel__logout" type="button" (click)="logout()">
+              Sair
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+  }
+
+  <main class="portal-main" [class.portal-main--auth]="isLoginRoute">
+    <section class="layout-frame">
+      <router-outlet></router-outlet>
+    </section>
+  </main>
+
+  @if (!isLoginRoute) {
+    <section class="portal-footer-banner" aria-label="Identidade visual do portal">
+      <article class="portal-footer-banner__card portal-footer-banner__card--left">
+        <img
+          class="portal-footer-banner__card-image"
+          src="/img/icone-centro.png"
+          alt="Painel esquerdo"
+        />
+      </article>
+
+      <article class="portal-footer-banner__card portal-footer-banner__card--center portal-footer-banner__card--brand">
+        <img
+          class="portal-footer-banner__card-image"
+          src="/img/icone-esquerda.jpeg"
+          alt="Painel central"
+        />
+      </article>
+
+      <article class="portal-footer-banner__card portal-footer-banner__card--right">
+        <img
+          class="portal-footer-banner__card-image"
+          src="/img/icone-direita.png"
+          alt="Painel direito"
+        />
+      </article>
+    </section>
+  }
+</div>

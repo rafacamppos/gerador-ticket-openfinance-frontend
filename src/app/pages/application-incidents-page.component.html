@@ -1,0 +1,233 @@
+<section class="dashboard">
+  <div class="dashboard__primary dashboard__primary--full">
+    <app-team-workspace-header
+      [ownerSlug]="ownerSlug()"
+      activeMenu="incidents"
+    />
+
+    <article class="widget">
+      <header class="widget__header">
+        <div class="widget__header-main">
+          <div class="widget__titleBlock">
+            <span>Dashboard Incidentes Aplicações</span>
+            @if (isSuWorkspace()) {
+              <small>
+                Acompanhe os incidentes direcionados ao SU e registre manualmente novos casos quando
+                necessário.
+              </small>
+            } @else {
+              <small>
+                Acompanhe os erros reportados para a equipe {{ ownerTitle() }} e abra o detalhe
+                para análise operacional.
+              </small>
+            }
+          </div>
+          <button
+            type="button"
+            class="widget__refreshButton"
+            (click)="loadIncidents()"
+            [disabled]="isLoadingIncidents || isRefreshingIncidents"
+            aria-label="Atualizar incidentes"
+            title="Atualizar incidentes"
+          >
+            <span class="widget__refreshIcon" aria-hidden="true">&#x21bb;</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="incident-list-shell">
+        @if (isSuWorkspace()) {
+          <div class="incident-list-shell__header incident-list-shell__header--split">
+            <div>
+              <span class="incident-list-shell__eyebrow">Monitoramento SU</span>
+              <h2>Incidentes direcionados ao SU</h2>
+            </div>
+
+            <button
+              type="button"
+              class="incident-list-shell__action"
+              (click)="toggleIncidentForm()"
+            >
+              <span>Novo incidente</span>
+            </button>
+          </div>
+        }
+
+        <app-application-incident-list-panel
+          [ownerSlug]="ownerSlug()"
+          [incidents]="incidents"
+          [isLoading]="isLoadingIncidents"
+          [hasSearched]="hasSearched"
+          [errorMessage]="incidentRequestError"
+          [initialMessage]="'Nenhum incidente foi carregado para esta area.'"
+          [emptySearchMessage]="'Nenhum incidente foi localizado para esta area.'"
+        />
+      </section>
+
+      @if (isSuWorkspace() && isIncidentFormVisible) {
+        <section class="incident-modal" aria-modal="true" role="dialog">
+          <button
+            type="button"
+            class="incident-modal__backdrop"
+            aria-label="Fechar cadastro de incidente"
+            (click)="hideIncidentForm()"
+          ></button>
+
+          <div class="incident-modal__panel">
+            <form class="incident-form" (ngSubmit)="submitIncident()">
+              <div class="incident-form__header">
+                <div>
+                  <span class="incident-form-shell__eyebrow">Cadastro Manual</span>
+                  <h2>Registrar incidente de aplicação</h2>
+                </div>
+                <div class="incident-form__header-side">
+                  <p>
+                    Preencha os dados do incidente e selecione a equipe responsável pelo
+                    tratamento.
+                  </p>
+                  <button
+                    type="button"
+                    class="incident-modal__close"
+                    (click)="hideIncidentForm()"
+                    [disabled]="isSubmittingIncident"
+                  >
+                    Fechar
+                  </button>
+                </div>
+              </div>
+
+              <div class="incident-form__grid">
+                <label class="incident-form__field incident-form__field--full">
+                  <span>Equipe responsável</span>
+                  <select [(ngModel)]="incidentForm.targetOwnerSlug" name="targetOwnerSlug">
+                    <option value="">Selecione uma equipe</option>
+                    @for (owner of routeOwnerOptions(); track owner.slug) {
+                      <option [value]="owner.slug">{{ owner.title }}</option>
+                    }
+                  </select>
+                </label>
+
+                <label class="incident-form__field">
+                  <span>X-FAPI-Interaction-Id</span>
+                  <input
+                    type="text"
+                    [(ngModel)]="incidentForm.x_fapi_interaction_id"
+                    name="xFapiInteractionId"
+                    placeholder="UUID"
+                  />
+                </label>
+
+                <label class="incident-form__field">
+                  <span>Authorization Server</span>
+                  <input
+                    type="text"
+                    [(ngModel)]="incidentForm.authorization_server"
+                    name="authorizationServer"
+                    placeholder="UUID"
+                  />
+                </label>
+
+                <label class="incident-form__field">
+                  <span>Client Id</span>
+                  <input
+                    type="text"
+                    [(ngModel)]="incidentForm.client_id"
+                    name="clientId"
+                    placeholder="UUID"
+                  />
+                </label>
+
+                <label class="incident-form__field incident-form__field--wide">
+                  <span>Endpoint</span>
+                  <input
+                    type="text"
+                    [(ngModel)]="incidentForm.endpoint"
+                    name="endpoint"
+                    placeholder="/open-banking/consents/v3/consents"
+                  />
+                </label>
+
+                <label class="incident-form__field">
+                  <span>Método</span>
+                  <select [(ngModel)]="incidentForm.method" name="method">
+                    @for (method of methodOptions(); track method) {
+                      <option [value]="method">{{ method }}</option>
+                    }
+                  </select>
+                </label>
+
+                <label class="incident-form__field">
+                  <span>Status code</span>
+                  <input
+                    type="number"
+                    [(ngModel)]="incidentForm.http_status_code"
+                    name="httpStatusCode"
+                    min="100"
+                    max="599"
+                  />
+                </label>
+
+                <label class="incident-form__field">
+                  <span>Data e hora</span>
+                  <input
+                    type="datetime-local"
+                    [(ngModel)]="incidentForm.occurred_at"
+                    name="occurredAt"
+                  />
+                </label>
+
+                <label class="incident-form__field incident-form__field--full">
+                  <span>Payload do erro</span>
+                  <textarea
+                    [(ngModel)]="incidentForm.error_payload"
+                    name="errorPayload"
+                    rows="10"
+                    spellcheck="false"
+                  ></textarea>
+                </label>
+              </div>
+
+              <div class="incident-form__footer">
+                <div class="incident-form__messages">
+                  @if (incidentSubmitError) {
+                    <div class="incident-form__message incident-form__message--error">
+                      {{ incidentSubmitError }}
+                    </div>
+                  }
+                  @if (incidentSubmitSuccess) {
+                    <div class="incident-form__message incident-form__message--success">
+                      {{ incidentSubmitSuccess }}
+                    </div>
+                  }
+                </div>
+
+                <div class="incident-form__actions">
+                  <button
+                    type="button"
+                    class="incident-form__cancel"
+                    (click)="hideIncidentForm()"
+                    [disabled]="isSubmittingIncident"
+                  >
+                    Cancelar
+                  </button>
+
+                  <button
+                    type="submit"
+                    class="incident-form__submit"
+                    [disabled]="isSubmittingIncident"
+                  >
+                    @if (isSubmittingIncident) {
+                      <span>Registrando...</span>
+                    } @else {
+                      <span>Cadastrar incidente</span>
+                    }
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </section>
+      }
+    </article>
+  </div>
+</section>

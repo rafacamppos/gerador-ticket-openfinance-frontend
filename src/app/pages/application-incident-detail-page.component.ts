@@ -1,0 +1,293 @@
+import { Location } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, OnInit, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+
+import { TeamWorkspaceHeaderComponent } from '../components/team-workspace-header.component';
+import { ApplicationIncidentsFacadeService } from '../services/application-incidents-facade.service';
+import { ApplicationIncident } from '../services/application-incidents.models';
+import { OpenFinanceApiService } from '../services/open-finance-api.service';
+import { PortalAuthService } from '../services/portal-auth.service';
+
+@Component({
+  selector: 'app-application-incident-detail-page',
+  standalone: true,
+  imports: [FormsModule, TeamWorkspaceHeaderComponent],
+  templateUrl: './application-incident-detail-page.component.html',
+  styleUrl: './application-incident-detail-page.component.css',
+})
+export class ApplicationIncidentDetailPageComponent implements OnInit {
+  private readonly location = inject(Location);
+  private readonly route = inject(ActivatedRoute);
+  private readonly openFinanceApi = inject(OpenFinanceApiService);
+  private readonly portalAuth = inject(PortalAuthService);
+  private readonly applicationIncidentsFacade = inject(ApplicationIncidentsFacadeService);
+
+  protected isLoading = true;
+  protected isAssigningToMe = false;
+  protected isUpdatingStatus = false;
+  protected isCreateTicketModalVisible = false;
+  protected isCreatingTicket = false;
+  protected errorMessage = '';
+  protected ticketCreateError = '';
+  protected ticketCreateSuccess = '';
+  protected incident: ApplicationIncident | null = null;
+  protected ticketForm = this.buildTicketForm();
+
+  async ngOnInit(): Promise<void> {
+    const ownerSlug = this.ownerSlug();
+    const incidentId = this.incidentId();
+
+    if (!ownerSlug || !incidentId) {
+      this.errorMessage = 'Incidente não informado.';
+      this.isLoading = false;
+      return;
+    }
+
+    try {
+      this.incident = await this.openFinanceApi.getApplicationIncidentById(ownerSlug, incidentId);
+      this.syncIncidentCache();
+      this.ticketForm = this.buildTicketForm(this.incident);
+    } catch (error) {
+      if (error instanceof HttpErrorResponse) {
+        this.errorMessage = `Falha ao carregar incidente (${error.status}).`;
+      } else {
+        this.errorMessage =
+          error instanceof Error ? error.message : 'Nao foi possivel carregar o incidente.';
+      }
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  protected ownerSlug(): string {
+    return this.route.snapshot.paramMap.get('ownerSlug') ?? '';
+  }
+
+  protected incidentId(): string {
+    return this.route.snapshot.paramMap.get('incidentId') ?? '';
+  }
+
+  protected goBack(): void {
+    this.location.back();
+  }
+
+  protected async assignToMe(): Promise<void> {
+    if (!this.incident || this.isAssigningToMe || this.isAssignedToMe()) {
+      return;
+    }
+
+    this.isAssigningToMe = true;
+    this.errorMessage = '';
+
+    try {
+      this.incident = await this.openFinanceApi.assignApplicationIncidentToMe(
+        this.ownerSlug(),
+        this.incident.id || ''
+      );
+      this.syncIncidentCache();
+      this.ticketForm = this.buildTicketForm(this.incident);
+    } catch (error) {
+      if (error instanceof HttpErrorResponse) {
+        this.errorMessage = `Falha ao atribuir incidente (${error.status}).`;
+      } else {
+        this.errorMessage =
+          error instanceof Error ? error.message : 'Nao foi possivel atribuir o incidente.';
+      }
+    } finally {
+      this.isAssigningToMe = false;
+    }
+  }
+
+  protected async markMonitoring(): Promise<void> {
+    await this.transitionIncident('monitoring');
+  }
+
+  protected async markResolved(): Promise<void> {
+    await this.transitionIncident('resolved');
+  }
+
+  protected async markCanceled(): Promise<void> {
+    await this.transitionIncident('canceled');
+  }
+
+  protected openCreateTicketModal(): void {
+    if (!this.incident) {
+      return;
+    }
+
+    this.ticketCreateError = '';
+    this.ticketCreateSuccess = '';
+    this.ticketForm = this.buildTicketForm(this.incident);
+    this.isCreateTicketModalVisible = true;
+  }
+
+  protected closeCreateTicketModal(): void {
+    if (this.isCreatingTicket) {
+      return;
+    }
+
+    this.isCreateTicketModalVisible = false;
+  }
+
+  protected async createTicket(): Promise<void> {
+    if (!this.incident || this.isCreatingTicket) {
+      return;
+    }
+
+    this.isCreatingTicket = true;
+    this.ticketCreateError = '';
+    this.ticketCreateSuccess = '';
+
+    try {
+      const payload = {
+        info: [
+          { key: 'problem_type', value: this.ticketForm.problem_type.trim() },
+          { key: 'title', value: this.ticketForm.title.trim() },
+          { key: 'description', value: this.ticketForm.description.trim() },
+        ],
+      };
+
+      const createdTicket = await this.openFinanceApi.createTicket(payload, { template: '20' });
+      const createdTicketId = Number(createdTicket.id);
+
+      if (!Number.isInteger(createdTicketId) || createdTicketId <= 0) {
+        throw new Error('A API retornou um numero de ticket invalido.');
+      }
+
+      this.incident = await this.openFinanceApi.transitionApplicationIncident(
+        this.ownerSlug(),
+        this.incident.id || '',
+        {
+          incident_status: 'ticket_created',
+          related_ticket_id: createdTicketId,
+        }
+      );
+      this.syncIncidentCache();
+      this.ticketCreateSuccess = `Ticket #${createdTicketId} criado com sucesso.`;
+      this.isCreateTicketModalVisible = false;
+    } catch (error) {
+      if (error instanceof HttpErrorResponse) {
+        this.ticketCreateError = `Falha ao criar ticket (${error.status}).`;
+      } else {
+        this.ticketCreateError =
+          error instanceof Error ? error.message : 'Nao foi possivel criar o ticket.';
+      }
+    } finally {
+      this.isCreatingTicket = false;
+    }
+  }
+
+  protected isAssignedToMe(): boolean {
+    const incident = this.incident;
+    const user = this.portalAuth.getUser();
+
+    if (!incident || !user) {
+      return false;
+    }
+
+    if (incident.assigned_to_user_id && user.id) {
+      return incident.assigned_to_user_id === user.id;
+    }
+
+    if (incident.assigned_to_email && user.email) {
+      return incident.assigned_to_email === user.email;
+    }
+
+    return false;
+  }
+
+  private async transitionIncident(
+    incidentStatus: string,
+    relatedTicketId?: number
+  ): Promise<void> {
+    if (!this.incident || this.isUpdatingStatus) {
+      return;
+    }
+
+    this.isUpdatingStatus = true;
+    this.errorMessage = '';
+
+    try {
+      this.incident = await this.openFinanceApi.transitionApplicationIncident(
+        this.ownerSlug(),
+        this.incident.id || '',
+        {
+          incident_status: incidentStatus,
+          related_ticket_id: relatedTicketId ?? null,
+        }
+      );
+      this.syncIncidentCache();
+      this.ticketForm = this.buildTicketForm(this.incident);
+    } catch (error) {
+      if (error instanceof HttpErrorResponse) {
+        this.errorMessage = `Falha ao atualizar incidente (${error.status}).`;
+      } else {
+        this.errorMessage =
+          error instanceof Error ? error.message : 'Nao foi possivel atualizar o incidente.';
+      }
+    } finally {
+      this.isUpdatingStatus = false;
+    }
+  }
+
+  private buildTicketForm(incident: ApplicationIncident | null = this.incident): {
+    problem_type: string;
+    title: string;
+    description: string;
+  } {
+    const endpoint = incident?.endpoint || 'Sem endpoint';
+    const method = incident?.method || 'N/A';
+    const statusCode = incident?.http_status_code ?? 'N/A';
+    const interactionId = incident?.x_fapi_interaction_id || 'Nao informado';
+    const authorizationServer = incident?.authorization_server || 'Nao informado';
+    const clientId = incident?.client_id || 'Nao informado';
+    const assignedTo = incident?.assigned_to_name || 'Nao atribuido';
+    const payload = this.formatValue(incident?.error_payload || {});
+
+    return {
+      problem_type: 'Incidentes_Diretório_Erro',
+      title: `[Incidente Aplicacao] ${method} ${endpoint} - HTTP ${statusCode}`,
+      description: [
+        'Ticket criado a partir de incidente de aplicacao.',
+        '',
+        `Equipe: ${incident?.team_name || 'Nao informado'}`,
+        `Endpoint: ${endpoint}`,
+        `Metodo: ${method}`,
+        `HTTP Status: ${statusCode}`,
+        `X-FAPI-Interaction-Id: ${interactionId}`,
+        `Authorization Server: ${authorizationServer}`,
+        `Client Id: ${clientId}`,
+        `Usuario atribuido: ${assignedTo}`,
+        '',
+        'Payload do erro:',
+        payload,
+      ].join('\n'),
+    };
+  }
+
+  private syncIncidentCache(): void {
+    if (!this.incident) {
+      return;
+    }
+
+    this.applicationIncidentsFacade.syncIncident(this.ownerSlug(), this.incident);
+  }
+
+  protected formatValue(value: unknown): string {
+    if (value === null || value === undefined || value === '') {
+      return 'Nao informado';
+    }
+
+    if (typeof value === 'object') {
+      try {
+        return JSON.stringify(value, null, 2);
+      } catch {
+        return String(value);
+      }
+    }
+
+    return String(value);
+  }
+}

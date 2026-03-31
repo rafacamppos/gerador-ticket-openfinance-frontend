@@ -1,0 +1,43 @@
+<section class="dashboard">
+  <div class="dashboard__primary dashboard__primary--full">
+    <app-team-workspace-header
+      [ownerSlug]="ownerSlug()"
+      activeMenu="tickets"
+    />
+
+    <article class="widget">
+      <header class="widget__header">
+        <div class="widget__header-main">
+          <div class="widget__titleBlock">
+            <span>Dashboard de Tickets</span>
+            <small>Acompanhe os tickets recebidos pela equipe e a sua fila de atuação.</small>
+          </div>
+          <button
+            type="button"
+            class="widget__refreshButton"
+            (click)="loadTickets()"
+            [disabled]="isLoadingTickets || isRefreshingTickets"
+            aria-label="Atualizar tickets"
+            title="Atualizar tickets"
+          >
+            <span class="widget__refreshIcon" aria-hidden="true">&#x21bb;</span>
+          </button>
+        </div>
+      </header>
+
+      <app-ticket-list-panel
+        [ownerSlug]="ownerSlug()"
+        [tickets]="tickets"
+        [isLoading]="isLoadingTickets"
+        [hasSearched]="hasSearched"
+        [errorMessage]="ticketRequestError"
+        [ticketStatuses]="ticketStatuses"
+        [isLoadingTicketStatuses]="isLoadingTicketStatuses"
+        [ticketStatusError]="ticketStatusError"
+        [initialMessage]="'Nenhum ticket foi carregado para esta area.'"
+        [emptySearchMessage]="'Nenhum ticket foi localizado para esta area.'"
+        (receivedTicketsOpen)="openReceivedTickets()"
+      />
+    </article>
+  </div>
+</section>

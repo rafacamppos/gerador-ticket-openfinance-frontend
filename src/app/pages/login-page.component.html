@@ -1,0 +1,61 @@
+<section class="login-page">
+  <div class="login-page__hero">
+    <img
+      class="login-page__brand"
+      src="/img/logo_oficial_site.png"
+      alt="Logo oficial Open Finance Brasil Santander"
+    />
+    <h1>Gestão de tickets OpenFinance</h1>
+    <p>Acesse o portal para triagem, direcionamento e acompanhamento dos tickets.</p>
+  </div>
+
+  <form class="login-card" (ngSubmit)="submit()">
+    <label class="login-card__field">
+      <span>Usuário (e-mail)</span>
+      <input
+        type="email"
+        name="email"
+        [(ngModel)]="email"
+        autocomplete="username"
+        placeholder="seu.email@empresa.com.br"
+      />
+    </label>
+
+    <label class="login-card__field">
+      <span>Senha</span>
+      <input
+        type="password"
+        name="password"
+        [(ngModel)]="password"
+        autocomplete="current-password"
+        placeholder="Digite sua senha"
+      />
+    </label>
+
+    @if (errorMessage) {
+      <div class="login-card__error">{{ errorMessage }}</div>
+    }
+
+    <button type="submit" class="login-card__submit" [disabled]="isSubmitting">
+      @if (isSubmitting) {
+        <span>Entrando...</span>
+      } @else {
+        <span>Entrar</span>
+      }
+    </button>
+  </form>
+
+  <section class="login-banner" aria-hidden="true">
+    <article class="login-banner__card login-banner__card--left">
+      <img class="login-banner__card-image" src="/img/icone-centro.png" alt="" />
+    </article>
+
+    <article class="login-banner__card login-banner__card--center login-banner__card--brand">
+      <img class="login-banner__card-image" src="/img/icone-esquerda.jpeg" alt="" />
+    </article>
+
+    <article class="login-banner__card login-banner__card--right">
+      <img class="login-banner__card-image" src="/img/icone-direita.png" alt="" />
+    </article>
+  </section>
+</section>

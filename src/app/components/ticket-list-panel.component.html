@@ -1,0 +1,186 @@
+<div class="tickets-result">
+  @if (errorMessage) {
+    <div class="tickets-result__state tickets-result__state--error">
+      {{ errorMessage }}
+    </div>
+  } @else if (isLoading) {
+    <div class="tickets-result__state">Consultando tickets...</div>
+  } @else if (hasSearched && !tickets.length) {
+    <div class="tickets-result__state tickets-result__state--warning">
+      {{ emptySearchMessage }}
+    </div>
+  } @else if (!tickets.length) {
+    <div class="tickets-result__state">
+      {{ initialMessage }}
+    </div>
+  } @else {
+    <div class="tickets-tabs" role="tablist" aria-label="Filtros de consulta">
+      <ul class="tickets-tabs__list">
+        <li role="presentation" [class.active]="isActiveTab('mine')">
+          <button
+            type="button"
+            role="tab"
+            [attr.aria-selected]="isActiveTab('mine')"
+            [attr.tabindex]="isActiveTab('mine') ? '0' : '-1'"
+            (click)="selectTab('mine')"
+          >
+            <div [title]="'Meus chamados ' + myTickets.length">
+              <span class="tabTitle">Meus chamados</span>
+              <span class="badge" [class.style__badgeActive___1614s]="isActiveTab('mine')">
+                {{ myTickets.length }}
+              </span>
+            </div>
+          </button>
+        </li>
+        <li role="presentation" [class.active]="isActiveTab('received')">
+          <button
+            type="button"
+            role="tab"
+            [attr.aria-selected]="isActiveTab('received')"
+            [attr.tabindex]="isActiveTab('received') ? '0' : '-1'"
+            (click)="selectTab('received')"
+          >
+            <div [title]="'Recebidos ' + receivedTickets.length">
+              <span class="tabTitle">Recebidos</span>
+              <span class="badge" [class.style__badgeActive___1614s]="isActiveTab('received')">
+                {{ receivedTickets.length }}
+              </span>
+            </div>
+          </button>
+        </li>
+      </ul>
+
+      @if (showTicketStatusFilter) {
+        <div class="tickets-tabs__filters">
+          <label class="tickets-tabs__filter">
+            <span>Status de {{ statusFilterLabel() }}</span>
+            <select
+              [ngModel]="selectedActiveTicketStatus"
+              (ngModelChange)="onActiveTicketStatusChange($event)"
+              name="activeTicketStatus"
+            >
+              <option value="">Todos ({{ activeTicketCount }})</option>
+              @for (status of activeTicketStatusOptions; track status.value) {
+                <option [value]="status.value">{{ status.label }}</option>
+              }
+            </select>
+          </label>
+        </div>
+      }
+    </div>
+
+    @if (isActiveTab('received') && ticketStatusError) {
+      <div class="tickets-result__state tickets-result__state--error">
+        {{ ticketStatusError }}
+      </div>
+    } @else if (isActiveTab('received') && isLoadingTicketStatuses) {
+      <div class="tickets-result__state">Carregando status do ticket...</div>
+    } @else if (!activeTickets.length) {
+      <div class="tickets-result__state tickets-result__state--warning">
+        @if (isActiveTab('mine')) {
+          Nenhum ticket foi localizado em <strong>Meus chamados</strong>.
+        } @else {
+          Nenhum ticket foi localizado em <strong>Recebidos</strong>.
+        }
+      </div>
+    } @else {
+      <div class="widgetTab__requestList">
+        @for (ticket of paginatedTickets; track ticket.id) {
+          <a
+            class="widgetTab__noDecoration___2F1Vh srListItem__requestListItem___1upUH"
+            [routerLink]="['/tickets', ticket.id]"
+            [queryParams]="ticketQueryParams()"
+          >
+            <div class="srListItem__content">
+              <div class="srListItem__main">
+                <div class="srListItem__defaultDetails___2UOMu">
+                  <div class="srListItem__iconWrapper___24jfq">
+                    <span class="iconIssue srListItem__listItemIcon___2sZIh IssueIcon"></span>
+                  </div>
+                  <div class="srListItem__requestListItemSubject___3VIge">
+                    <strong><span id="ticket_{{ ticket.id }}_num">#{{ ticket.id }}:</span></strong>
+                    <span id="ticket_{{ ticket.id }}_title">{{ ticket.title }}</span>
+                  </div>
+                </div>
+                <div class="badgesContainer__badges___2IrR4">
+                  <span class="badgesContainer__reqInfo___jtJmE">
+                    <span class="badge badge--status">
+                      Status:
+                      <span id="ticket_{{ ticket.id }}_status">
+                        {{ isActiveTab('received') ? resolveTicketStatus(ticket) : ticket.status }}
+                      </span>
+                    </span>
+                  </span>
+                  <span class="badgesContainer__reqInfo___jtJmE">
+                    <span class="badge badge--flow">
+                      Fluxo:
+                      <span>{{ flowStageLabel(ticket) }}</span>
+                    </span>
+                  </span>
+                </div>
+                <div class="srListItem__requestListItemSummary___local">
+                  {{ ticket.description }}
+                </div>
+              </div>
+              <div class="columnsContainer__moreDetailsWrapper___2qXir">
+                <div class="columnsContainer__requestListItemMoreDetails___39suO">
+                  <strong>Data de modificacao</strong>
+                  <div class="columnsContainer__columnDefault___1BXC1">
+                    <div
+                      class="columnsContainer__textBlockEllipsis___2OcmZ"
+                      [title]="ticket.atualizadoEm"
+                    >
+                      {{ ticket.atualizadoEm }}
+                    </div>
+                  </div>
+                </div>
+                <div class="columnsContainer__requestListItemMoreDetails___39suO">
+                  <strong>Data de solicitacao</strong>
+                  <div class="columnsContainer__columnDefault___1BXC1">
+                    <div class="columnsContainer__textBlockEllipsis___2OcmZ" [title]="ticket.criadoEm">
+                      {{ ticket.criadoEm }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </a>
+        }
+      </div>
+      @if (activeTickets.length > pageSize) {
+        <div class="tickets-pagination">
+          <button
+            type="button"
+            class="tickets-pagination__button"
+            (click)="previousPage()"
+            [disabled]="currentPage === 1"
+          >
+            Anterior
+          </button>
+
+          <div class="tickets-pagination__pages">
+            @for (page of pageNumbers(); track page) {
+              <button
+                type="button"
+                class="tickets-pagination__page"
+                [class.tickets-pagination__page--active]="page === currentPage"
+                (click)="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+          </div>
+
+          <button
+            type="button"
+            class="tickets-pagination__button"
+            (click)="nextPage()"
+            [disabled]="currentPage === totalPages"
+          >
+            Proxima
+          </button>
+        </div>
+      }
+    }
+  }
+</div>

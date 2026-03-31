@@ -1,0 +1,70 @@
+<section class="dashboard">
+  <div class="dashboard__primary dashboard__primary--full">
+    <article class="widget">
+      <header class="widget__header">
+        <span>Dashboard de Áreas</span>
+      </header>
+
+      <section class="dashboard-hero">
+        <div class="dashboard-hero__copy">
+          <span class="dashboard-hero__eyebrow">OpenFinance Santander</span>
+          <h1>Selecione a área responsável para tratar tickets e incidentes</h1>
+          <p>
+            Acesse a célula responsável para triagem, acompanhamento operacional e tratamento de
+            incidentes de aplicação.
+          </p>
+        </div>
+      </section>
+
+      <section class="owners-section owners-section--priority">
+        <div class="owners-section__header">
+          <span class="owners-section__eyebrow">Área principal</span>
+          <h2>Supervisão e triagem</h2>
+        </div>
+
+        <a class="toolbox-card toolbox-card--priority toolbox-card--link" [routerLink]="priorityOwner.route">
+          <div class="toolbox-card__icon toolbox-card__icon--priority" aria-hidden="true">
+            <img src="/img/icone_oficial.png" alt="" />
+          </div>
+
+          <div class="toolbox-card__content">
+            <div class="toolbox-card__title">{{ priorityOwner.title }}</div>
+            <div class="toolbox-card__description">
+              <div>{{ priorityOwner.description }}</div>
+            </div>
+            <div class="toolbox-card__footer">
+              <span>Acessar área principal</span>
+            </div>
+          </div>
+        </a>
+      </section>
+
+      <section class="owners-section">
+        <div class="owners-section__header">
+          <span class="owners-section__eyebrow">Equipes operacionais</span>
+          <h2>Áreas especializadas</h2>
+        </div>
+
+        <div class="owners-grid">
+          @for (owner of owners; track owner.route) {
+            <a class="toolbox-card toolbox-card--link" [routerLink]="owner.route">
+              <div class="toolbox-card__icon" aria-hidden="true">
+                <img src="/img/icone_oficial.png" alt="" />
+              </div>
+
+              <div class="toolbox-card__content">
+                <div class="toolbox-card__title">{{ owner.title }}</div>
+                <div class="toolbox-card__description">
+                  <div>{{ owner.description }}</div>
+                </div>
+                <div class="toolbox-card__footer">
+                  <span>Acessar área</span>
+                </div>
+              </div>
+            </a>
+          }
+        </div>
+      </section>
+    </article>
+  </div>
+</section>

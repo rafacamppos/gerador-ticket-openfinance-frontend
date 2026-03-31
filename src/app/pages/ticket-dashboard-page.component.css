@@ -1,0 +1,229 @@
+.dashboard {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: 26px;
+}
+
+.dashboard__primary,
+.dashboard__primary--full {
+  grid-column: 1 / -1;
+}
+
+.widget__header,
+.faq-widget__header {
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 0 16px;
+  background: #147d96;
+  color: #ffffff;
+}
+
+.widget__header span,
+.faq-widget__header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.widget {
+  border: 1px solid #cfcfcf;
+  background: #ffffff;
+}
+
+.toolbox-card {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  padding: 18px;
+  border: 1px solid #d7e4e8;
+  border-radius: 18px;
+  background: #ffffff;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    border-color 120ms ease,
+    background 120ms ease;
+}
+
+.toolbox-card--link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.toolbox-card:disabled {
+  cursor: wait;
+  opacity: 0.8;
+}
+
+.toolbox-card:hover:not(:disabled) {
+  background: #f7fbfc;
+  border-color: #b8d6de;
+  box-shadow: 0 18px 34px rgba(17, 73, 88, 0.08);
+  transform: translateY(-2px);
+}
+
+.toolbox-card__icon {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 72px;
+}
+
+.toolbox-card__icon img {
+  width: 57px;
+  height: 57px;
+  object-fit: contain;
+}
+
+.toolbox-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.toolbox-card__title {
+  color: #147d96;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.toolbox-card__description {
+  color: #5f6368;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.toolbox-card__footer {
+  color: #0f657b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.dashboard-hero {
+  padding: 28px 28px 20px;
+  background:
+    linear-gradient(180deg, rgba(20, 125, 150, 0.05), rgba(20, 125, 150, 0)),
+    radial-gradient(circle at top right, rgba(20, 125, 150, 0.14), transparent 32%);
+}
+
+.dashboard-hero__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 760px;
+}
+
+.dashboard-hero__eyebrow,
+.owners-section__eyebrow {
+  color: #0f657b;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dashboard-hero__copy h1,
+.owners-section__header h2 {
+  margin: 0;
+  color: #18353f;
+  line-height: 1.15;
+}
+
+.dashboard-hero__copy h1 {
+  font-size: clamp(30px, 4vw, 42px);
+}
+
+.dashboard-hero__copy p {
+  margin: 0;
+  max-width: 680px;
+  color: #5f6368;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.owners-section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 0 18px 18px;
+}
+
+.owners-section__header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.owners-section--priority {
+  padding-top: 4px;
+}
+
+.toolbox-card--priority {
+  grid-template-columns: 120px minmax(0, 1fr);
+  padding: 22px 24px;
+  border-color: #cfe1e6;
+  background:
+    radial-gradient(circle at top right, rgba(20, 125, 150, 0.1), transparent 34%),
+    #ffffff;
+  box-shadow: 0 20px 38px rgba(17, 73, 88, 0.08);
+}
+
+.toolbox-card__icon--priority {
+  min-height: 88px;
+}
+
+.toolbox-card--priority .toolbox-card__icon img {
+  width: 72px;
+  height: 72px;
+}
+
+.toolbox-card--priority .toolbox-card__title {
+  font-size: 24px;
+}
+
+.owners-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.faq-item {
+  display: block;
+  padding: 15px;
+  border-top: 1px solid #ececec;
+  color: #444444;
+  text-decoration: none;
+}
+
+.faq-item:first-child {
+  border-top: 0;
+}
+
+.faq-item:hover {
+  background: #f7f7f7;
+}
+
+@media (max-width: 920px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbox-card {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbox-card--priority {
+    grid-template-columns: 1fr;
+  }
+
+  .owners-grid {
+    grid-template-columns: 1fr;
+  }
+}

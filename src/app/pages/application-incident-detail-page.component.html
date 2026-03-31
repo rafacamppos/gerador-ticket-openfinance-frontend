@@ -1,0 +1,233 @@
+<section class="dashboard">
+  <div class="dashboard__primary dashboard__primary--full">
+    <app-team-workspace-header
+      [ownerSlug]="ownerSlug()"
+      activeMenu="incidents"
+    />
+
+    <article class="detail-card">
+      <div class="detail-card__header">
+        <button type="button" class="detail-card__back" (click)="goBack()">
+          <span aria-hidden="true">←</span>
+          <span>Voltar</span>
+        </button>
+      </div>
+
+      @if (isLoading) {
+        <div class="detail-card__state">Carregando incidente...</div>
+      } @else if (errorMessage) {
+        <div class="detail-card__state detail-card__state--error">{{ errorMessage }}</div>
+      } @else if (incident) {
+        <header class="detail-card__hero">
+          <div>
+            <div class="detail-card__eyebrow">Incidente #{{ formatValue(incident.id) }}</div>
+            <h2>{{ formatValue(incident.endpoint) }}</h2>
+          </div>
+          <div class="detail-card__hero-actions">
+            <div class="detail-card__badges">
+              <span class="detail-card__badge detail-card__badge--status">
+                HTTP {{ formatValue(incident.http_status_code) }}
+              </span>
+              <span class="detail-card__badge detail-card__badge--method">
+                {{ formatValue(incident.method) }}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              class="detail-card__assignButton"
+              (click)="assignToMe()"
+              [class.detail-card__assignButton--muted]="isAssignedToMe()"
+              [disabled]="isAssigningToMe || isAssignedToMe()"
+            >
+              @if (isAssigningToMe) {
+                <span>Atribuindo...</span>
+              } @else if (isAssignedToMe()) {
+                <span>Atribuido a mim</span>
+              } @else {
+                <span>Atribuir a mim</span>
+              }
+            </button>
+          </div>
+        </header>
+
+        <section class="detail-card__toolbar">
+          <div class="detail-card__toolbar-summary">
+            <div><strong>Status do incidente:</strong> {{ formatValue(incident.incident_status_label) }}</div>
+            <div><strong>Ticket relacionado:</strong> {{ formatValue(incident.related_ticket_id) }}</div>
+          </div>
+
+          <div class="detail-card__toolbar-actions">
+            <button
+              type="button"
+              class="detail-card__actionButton detail-card__actionButton--compact detail-card__actionButton--compactStatus"
+              (click)="openCreateTicketModal()"
+            >
+              Criar ticket
+            </button>
+
+            <button
+              type="button"
+              class="detail-card__actionButton detail-card__actionButton--compactStatus"
+              (click)="markMonitoring()"
+              [disabled]="isUpdatingStatus"
+            >
+              Em análise
+            </button>
+            <button
+              type="button"
+              class="detail-card__actionButton detail-card__actionButton--success detail-card__actionButton--compactStatus"
+              (click)="markResolved()"
+              [disabled]="isUpdatingStatus"
+            >
+              Resolver
+            </button>
+            <button
+              type="button"
+              class="detail-card__actionButton detail-card__actionButton--danger detail-card__actionButton--compactStatus"
+              (click)="markCanceled()"
+              [disabled]="isUpdatingStatus"
+            >
+              Cancelar
+            </button>
+          </div>
+        </section>
+
+        <div class="detail-card__sections">
+          <section class="detail-card__section">
+            <h3>Dados principais</h3>
+            <div class="detail-card__grid">
+              <div><strong>Equipe:</strong> {{ formatValue(incident.team_name) }}</div>
+              <div><strong>Data do erro:</strong> {{ formatValue(incident.occurred_at) }}</div>
+              <div><strong>X-FAPI-Interaction-Id:</strong> {{ formatValue(incident.x_fapi_interaction_id) }}</div>
+              <div><strong>Authorization Server:</strong> {{ formatValue(incident.authorization_server) }}</div>
+              <div><strong>Client Id:</strong> {{ formatValue(incident.client_id) }}</div>
+              <div class="detail-card__grid-item--full">
+                <strong>Endpoint:</strong>
+                <pre class="detail-card__preformatted">{{ formatValue(incident.endpoint) }}</pre>
+              </div>
+            </div>
+          </section>
+
+          <section class="detail-card__section">
+            <h3>Registro</h3>
+            <div class="detail-card__grid">
+              <div><strong>Status atual:</strong> {{ formatValue(incident.incident_status_label) }}</div>
+              <div><strong>Ticket relacionado:</strong> {{ formatValue(incident.related_ticket_id) }}</div>
+              <div><strong>Usuário atribuído:</strong> {{ formatValue(incident.assigned_to_name) }}</div>
+              <div><strong>E-mail atribuído:</strong> {{ formatValue(incident.assigned_to_email) }}</div>
+              <div><strong>Criado em:</strong> {{ formatValue(incident.created_at) }}</div>
+              <div><strong>Atualizado em:</strong> {{ formatValue(incident.updated_at) }}</div>
+            </div>
+          </section>
+
+          <section class="detail-card__section">
+            <h3>Payload do erro</h3>
+            <pre class="detail-card__preformatted">{{ formatValue(incident.error_payload) }}</pre>
+          </section>
+        </div>
+
+        @if (ticketCreateSuccess) {
+          <div class="detail-card__state detail-card__state--success">{{ ticketCreateSuccess }}</div>
+        }
+      }
+    </article>
+  </div>
+</section>
+
+@if (isCreateTicketModalVisible && incident) {
+  <section class="detail-modal" aria-modal="true" role="dialog">
+    <button
+      type="button"
+      class="detail-modal__backdrop"
+      aria-label="Fechar criacao de ticket"
+      (click)="closeCreateTicketModal()"
+    ></button>
+
+    <div class="detail-modal__panel">
+      <form class="ticket-create-modal" (ngSubmit)="createTicket()">
+        <div class="ticket-create-modal__header">
+          <div>
+            <div class="detail-card__eyebrow">Criacao de Ticket</div>
+            <h2>Criar ticket a partir do incidente #{{ formatValue(incident.id) }}</h2>
+          </div>
+          <div class="ticket-create-modal__header-side">
+            <p>
+              Os campos abaixo ja vieram preenchidos com base no incidente e podem ser ajustados
+              antes da abertura do ticket.
+            </p>
+            <button
+              type="button"
+              class="ticket-create-modal__close"
+              (click)="closeCreateTicketModal()"
+              [disabled]="isCreatingTicket"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+
+        <div class="ticket-create-modal__grid">
+          <label class="ticket-create-modal__field">
+            <span>Problem Type</span>
+            <input
+              type="text"
+              [(ngModel)]="ticketForm.problem_type"
+              name="problemType"
+              placeholder="Incidentes_Diretório_Erro"
+            />
+          </label>
+
+          <label class="ticket-create-modal__field ticket-create-modal__field--full">
+            <span>Titulo</span>
+            <input
+              type="text"
+              [(ngModel)]="ticketForm.title"
+              name="ticketTitle"
+              placeholder="Titulo do ticket"
+            />
+          </label>
+
+          <label class="ticket-create-modal__field ticket-create-modal__field--full">
+            <span>Descricao</span>
+            <textarea
+              [(ngModel)]="ticketForm.description"
+              name="ticketDescription"
+              rows="14"
+            ></textarea>
+          </label>
+        </div>
+
+        <div class="ticket-create-modal__footer">
+          <div class="ticket-create-modal__messages">
+            @if (ticketCreateError) {
+              <div class="detail-card__state detail-card__state--error">{{ ticketCreateError }}</div>
+            }
+          </div>
+
+          <div class="ticket-create-modal__actions">
+            <button
+              type="button"
+              class="ticket-create-modal__secondary"
+              (click)="closeCreateTicketModal()"
+              [disabled]="isCreatingTicket"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="ticket-create-modal__primary"
+              [disabled]="isCreatingTicket"
+            >
+              @if (isCreatingTicket) {
+                <span>Criando...</span>
+              } @else {
+                <span>Criar ticket</span>
+              }
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+}

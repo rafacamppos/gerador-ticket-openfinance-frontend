@@ -1,0 +1,458 @@
+.dashboard {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 26px;
+}
+
+.dashboard__primary {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.dashboard__primary--full {
+  grid-column: 1 / -1;
+}
+
+.detail-card {
+  border: 1px solid #d9e6ea;
+  background: #ffffff;
+}
+
+.detail-card__header {
+  padding: 18px 20px 0;
+}
+
+.detail-card__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  color: #106b81;
+  font: inherit;
+  cursor: pointer;
+}
+
+.detail-card__state {
+  margin: 16px 20px 20px;
+  padding: 18px 20px;
+  color: #5f6368;
+  font-size: 14px;
+  line-height: 1.6;
+  border-radius: 6px;
+}
+
+.detail-card__state--error {
+  color: #ae2a19;
+  background: #fff3f1;
+  border-left: 4px solid #ae2a19;
+}
+
+.detail-card__state--success {
+  color: #1f6d2f;
+  background: #eefbf1;
+  border-left: 4px solid #2f8f46;
+}
+
+.detail-card__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #e7eef1;
+  background: #f9fbfc;
+}
+
+.detail-card__toolbar-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  color: #35505a;
+  font-size: 14px;
+}
+
+.detail-card__toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.detail-card__actionButton {
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid #c8d9df;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #29434d;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.detail-card__actionButton--primary {
+  border: 0;
+  background: linear-gradient(135deg, #106b81, #147d96);
+  color: #ffffff;
+}
+
+.detail-card__actionButton--success {
+  border-color: #bfe0c8;
+  background: #effaf2;
+  color: #1f6d2f;
+}
+
+.detail-card__actionButton--danger {
+  border-color: #f1c6bf;
+  background: #fff3f1;
+  color: #ae2a19;
+}
+
+.detail-card__actionButton--compact {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+  border: 0;
+  background: linear-gradient(135deg, #106b81, #147d96);
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(20, 125, 150, 0.16);
+}
+
+.detail-card__actionButton--compactStatus {
+  min-height: 34px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.detail-card__actionButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.detail-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+}
+
+.detail-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(11, 26, 32, 0.5);
+  backdrop-filter: blur(3px);
+  cursor: pointer;
+}
+
+.detail-modal__panel {
+  position: relative;
+  z-index: 1;
+  width: min(980px, 100%);
+  max-height: calc(100vh - 56px);
+  overflow: auto;
+  border-radius: 22px;
+  box-shadow: 0 34px 84px rgba(15, 23, 42, 0.24);
+}
+
+.ticket-create-modal {
+  border: 1px solid #d9e6ea;
+  border-radius: 22px;
+  background: #ffffff;
+}
+
+.ticket-create-modal__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 20px;
+  padding: 22px 24px 0;
+}
+
+.ticket-create-modal__header h2 {
+  margin: 6px 0 0;
+  color: #17333d;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.ticket-create-modal__header-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ticket-create-modal__header-side p {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid #dce9ed;
+  border-radius: 14px;
+  background: #f8fbfc;
+  color: #48606b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.ticket-create-modal__close,
+.ticket-create-modal__secondary,
+.ticket-create-modal__primary {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ticket-create-modal__close,
+.ticket-create-modal__secondary {
+  border: 1px solid #c9d8dd;
+  background: #ffffff;
+  color: #29434d;
+}
+
+.ticket-create-modal__primary {
+  border: 0;
+  background: linear-gradient(135deg, #106b81, #147d96);
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(20, 125, 150, 0.16);
+}
+
+.ticket-create-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 20px;
+  padding: 24px;
+}
+
+.ticket-create-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ticket-create-modal__field--full {
+  grid-column: 1 / -1;
+}
+
+.ticket-create-modal__field span {
+  color: #29434d;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ticket-create-modal__field input,
+.ticket-create-modal__field textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 14px;
+  border: 1px solid #c9d8dd;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #18353f;
+  font: inherit;
+}
+
+.ticket-create-modal__field textarea {
+  min-height: 260px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.ticket-create-modal__footer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px 24px 24px;
+  border-top: 1px solid #e6eef1;
+  background: #fbfdfe;
+}
+
+.ticket-create-modal__messages {
+  flex: 1;
+}
+
+.ticket-create-modal__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.detail-card__hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px;
+  border-bottom: 1px solid #e7eef1;
+}
+
+.detail-card__hero-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.detail-card__eyebrow {
+  color: #607d88;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.detail-card__hero h2 {
+  margin: 6px 0 0;
+  color: #17333d;
+  font-size: 26px;
+  line-height: 1.2;
+}
+
+.detail-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.detail-card__badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.detail-card__badge--status {
+  background: #8fc9d6;
+}
+
+.detail-card__badge--method {
+  background: #2f6f3e;
+}
+
+.detail-card__assignButton {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #106b81, #147d96);
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 14px 28px rgba(20, 125, 150, 0.16);
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    opacity 120ms ease;
+}
+
+.detail-card__assignButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 32px rgba(20, 125, 150, 0.22);
+}
+
+.detail-card__assignButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  box-shadow: none;
+}
+
+.detail-card__assignButton--muted {
+  background: linear-gradient(135deg, #88aeb7, #9cbac2);
+  color: rgba(255, 255, 255, 0.96);
+  box-shadow: none;
+}
+
+.detail-card__sections {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px;
+}
+
+.detail-card__section {
+  border: 1px solid #d9e6ea;
+  background: #fdfefe;
+}
+
+.detail-card__section h3 {
+  margin: 0;
+  padding: 16px 18px;
+  border-bottom: 1px solid #e7eef1;
+  color: #17333d;
+  font-size: 16px;
+}
+
+.detail-card__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+  padding: 18px;
+}
+
+.detail-card__grid-item--full {
+  grid-column: 1 / -1;
+}
+
+.detail-card__preformatted {
+  margin: 6px 0 0;
+  padding: 14px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #d6e4f0;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 800px) {
+  .detail-card__hero {
+    flex-direction: column;
+  }
+
+  .detail-card__hero-actions {
+    align-items: stretch;
+  }
+
+  .detail-card__toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .detail-card__toolbar-actions {
+    flex-direction: column;
+  }
+
+  .detail-card__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-modal {
+    padding: 16px;
+  }
+
+  .detail-modal__panel {
+    max-height: calc(100vh - 32px);
+  }
+
+  .ticket-create-modal__header,
+  .ticket-create-modal__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ticket-create-modal__footer,
+  .ticket-create-modal__actions {
+    flex-direction: column;
+  }
+}

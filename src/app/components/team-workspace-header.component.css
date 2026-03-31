@@ -1,0 +1,109 @@
+.toolbox-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.ticket-toolbar {
+  display: flex;
+  justify-content: flex-start;
+  padding-bottom: 10px;
+}
+
+.ticket-toolbar__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid #d6d6d6;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #147d96;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ticket-toolbar__back:hover {
+  background: #f7fbfc;
+}
+
+.ticket-toolbar__backIcon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.team-hero {
+  padding: 24px 26px;
+  border: 1px solid #d9e6ea;
+  background:
+    linear-gradient(135deg, rgba(20, 125, 150, 0.08), rgba(255, 255, 255, 0.95)),
+    #ffffff;
+}
+
+.team-hero__area {
+  margin-bottom: 10px;
+  color: #147d96;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.team-hero__title {
+  margin: 0;
+  color: #123f4d;
+  font-size: clamp(30px, 4vw, 42px);
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.team-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-top: 14px;
+  padding: 6px;
+  border: 1px solid #d9e6ea;
+  border-radius: 16px;
+  background: #f6fafb;
+}
+
+.team-menu__item {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 12px;
+  color: #4f5f67;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.team-menu__item--active {
+  background: #ffffff;
+  color: #147d96;
+  box-shadow: 0 10px 22px rgba(20, 125, 150, 0.12);
+}
+
+@media (max-width: 920px) {
+  .team-menu {
+    width: 100%;
+  }
+
+  .team-menu__item {
+    flex: 1 1 220px;
+    justify-content: center;
+  }
+
+  .team-hero {
+    padding: 22px 20px;
+  }
+}

@@ -1,0 +1,29 @@
+<article class="toolbox-panel">
+  <div class="ticket-toolbar">
+    <a
+      class="ticket-toolbar__back"
+      routerLink="/dashboard"
+      aria-label="Voltar para a tela inicial"
+    >
+      <span class="ticket-toolbar__backIcon" aria-hidden="true">←</span>
+      <span>Voltar</span>
+    </a>
+  </div>
+
+  <div class="team-hero">
+    <div class="team-hero__area">OpenFinance - Santander</div>
+    <h1 class="team-hero__title">{{ ownerTitle() }}</h1>
+  </div>
+
+  <nav class="team-menu" aria-label="Menus da equipe">
+    @for (item of menuItems(); track item.key) {
+      <a
+        class="team-menu__item"
+        [class.team-menu__item--active]="isActiveMenu(item.key)"
+        [routerLink]="item.href"
+      >
+        {{ item.label }}
+      </a>
+    }
+  </nav>
+</article>

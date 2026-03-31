@@ -1,0 +1,134 @@
+<div class="tickets-result">
+  @if (errorMessage) {
+    <div class="tickets-result__state tickets-result__state--error">
+      {{ errorMessage }}
+    </div>
+  } @else if (isLoading) {
+    <div class="tickets-result__state">Consultando incidentes...</div>
+  } @else if (hasSearched && !incidents.length) {
+    <div class="tickets-result__state tickets-result__state--warning">
+      {{ emptySearchMessage }}
+    </div>
+  } @else if (!incidents.length) {
+    <div class="tickets-result__state">
+      {{ initialMessage }}
+    </div>
+  } @else {
+    <div class="widgetTab__requestList">
+      @for (incident of paginatedIncidents; track incident.id) {
+        <a
+          class="widgetTab__noDecoration___2F1Vh srListItem__requestListItem___1upUH"
+          [routerLink]="['/areas', ownerSlug, 'incidentes-aplicacoes', incident.id]"
+        >
+          <div class="srListItem__content">
+            <div class="srListItem__main">
+              <div class="srListItem__defaultDetails___2UOMu">
+                <div class="srListItem__iconWrapper___24jfq">
+                  <span class="iconIssue srListItem__listItemIcon___2sZIh IssueIcon"></span>
+                </div>
+                <div class="srListItem__requestListItemSubject___3VIge">
+                  <strong><span>#{{ incident.id }}:</span></strong>
+                  <span>{{ incident.endpoint }}</span>
+                </div>
+              </div>
+              <div class="badgesContainer__badges___2IrR4">
+                <span class="badgesContainer__reqInfo___jtJmE">
+                  <span class="badge badge--status">
+                    HTTP:
+                    <span>{{ incident.statusCodeLabel }}</span>
+                  </span>
+                </span>
+                <span class="badgesContainer__reqInfo___jtJmE">
+                  <span
+                    class="badge badge--flow"
+                    [class.badge--incident-new]="!incident.incidentStatus || hasIncidentStatus(incident, 'new')"
+                    [class.badge--incident-assigned]="hasIncidentStatus(incident, 'assigned')"
+                    [class.badge--incident-monitoring]="hasIncidentStatus(incident, 'monitoring')"
+                    [class.badge--incident-ticket-created]="hasIncidentStatus(incident, 'ticket_created')"
+                    [class.badge--incident-resolved]="hasIncidentStatus(incident, 'resolved')"
+                    [class.badge--incident-canceled]="hasIncidentStatus(incident, 'canceled')"
+                  >
+                    Incidente:
+                    <span>{{ incident.incidentStatusLabel }}</span>
+                  </span>
+                </span>
+                <span class="badgesContainer__reqInfo___jtJmE">
+                  <span class="badge badge--flow">
+                    Metodo:
+                    <span>{{ incident.method }}</span>
+                  </span>
+                </span>
+              </div>
+              <div class="srListItem__requestListItemSummary___local">
+                {{ incident.summary }}
+              </div>
+            </div>
+            <div class="columnsContainer__moreDetailsWrapper___2qXir">
+              <div class="columnsContainer__requestListItemMoreDetails___39suO">
+                <strong>Data do erro</strong>
+                <div class="columnsContainer__columnDefault___1BXC1">
+                  <div class="columnsContainer__textBlockEllipsis___2OcmZ" [title]="incident.dataHora">
+                    {{ incident.dataHora }}
+                  </div>
+                </div>
+              </div>
+              <div class="columnsContainer__requestListItemMoreDetails___39suO">
+                <strong>Ticket relacionado</strong>
+                <div class="columnsContainer__columnDefault___1BXC1">
+                  <div
+                    class="columnsContainer__textBlockEllipsis___2OcmZ"
+                    [title]="incident.relatedTicketId || 'Nao informado'"
+                  >
+                    {{ incident.relatedTicketId || 'Nao informado' }}
+                  </div>
+                </div>
+              </div>
+              <div class="columnsContainer__requestListItemMoreDetails___39suO">
+                <strong>Registrado em</strong>
+                <div class="columnsContainer__columnDefault___1BXC1">
+                  <div class="columnsContainer__textBlockEllipsis___2OcmZ" [title]="incident.createdAt">
+                    {{ incident.createdAt }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </a>
+      }
+    </div>
+    @if (incidents.length > pageSize) {
+      <div class="tickets-pagination">
+        <button
+          type="button"
+          class="tickets-pagination__button"
+          (click)="previousPage()"
+          [disabled]="currentPage === 1"
+        >
+          Anterior
+        </button>
+
+        <div class="tickets-pagination__pages">
+          @for (page of pageNumbers(); track page) {
+            <button
+              type="button"
+              class="tickets-pagination__page"
+              [class.tickets-pagination__page--active]="page === currentPage"
+              (click)="goToPage(page)"
+            >
+              {{ page }}
+            </button>
+          }
+        </div>
+
+        <button
+          type="button"
+          class="tickets-pagination__button"
+          (click)="nextPage()"
+          [disabled]="currentPage === totalPages"
+        >
+          Proxima
+        </button>
+      </div>
+    }
+  }
+</div>
