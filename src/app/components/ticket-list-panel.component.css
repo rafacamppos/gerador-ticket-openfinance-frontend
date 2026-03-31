@@ -123,11 +123,14 @@
 }
 
 .srListItem__requestListItem___1upUH {
+  width: calc(100% - 32px);
   margin: 12px 16px;
   padding: 18px 20px;
   border: 1px solid #d8d8d8;
   border-radius: 12px;
   background: #ffffff;
+  text-align: left;
+  appearance: none;
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.03);
   transition:
     border-color 120ms ease,

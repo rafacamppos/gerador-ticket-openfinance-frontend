@@ -2,10 +2,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  flex: 1 0 auto;
   gap: 28px;
-  min-height: 100vh;
-  padding: 32px 16px 40px;
+  min-height: 100%;
+  padding: 48px 16px 40px;
   background:
     radial-gradient(circle at top, rgba(20, 125, 150, 0.12), transparent 38%),
     linear-gradient(180deg, #f7fbfc 0%, #ffffff 58%);
@@ -164,7 +165,7 @@
 
 @media (max-width: 720px) {
   .login-page {
-    padding-top: 24px;
+    padding-top: 28px;
   }
 
   .login-page__brand {

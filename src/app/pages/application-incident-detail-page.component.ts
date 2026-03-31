@@ -1,10 +1,7 @@
-import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
-
-import { TeamWorkspaceHeaderComponent } from '../components/team-workspace-header.component';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ApplicationIncidentsFacadeService } from '../services/application-incidents-facade.service';
 import { ApplicationIncident } from '../services/application-incidents.models';
 import { OpenFinanceApiService } from '../services/open-finance-api.service';
@@ -13,13 +10,13 @@ import { PortalAuthService } from '../services/portal-auth.service';
 @Component({
   selector: 'app-application-incident-detail-page',
   standalone: true,
-  imports: [FormsModule, TeamWorkspaceHeaderComponent],
+  imports: [FormsModule],
   templateUrl: './application-incident-detail-page.component.html',
   styleUrl: './application-incident-detail-page.component.css',
 })
 export class ApplicationIncidentDetailPageComponent implements OnInit {
-  private readonly location = inject(Location);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly openFinanceApi = inject(OpenFinanceApiService);
   private readonly portalAuth = inject(PortalAuthService);
   private readonly applicationIncidentsFacade = inject(ApplicationIncidentsFacadeService);
@@ -70,7 +67,7 @@ export class ApplicationIncidentDetailPageComponent implements OnInit {
   }
 
   protected goBack(): void {
-    this.location.back();
+    void this.router.navigate(['/areas', this.ownerSlug(), 'incidentes-aplicacoes']);
   }
 
   protected async assignToMe(): Promise<void> {

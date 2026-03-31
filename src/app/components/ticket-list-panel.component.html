@@ -86,10 +86,10 @@
     } @else {
       <div class="widgetTab__requestList">
         @for (ticket of paginatedTickets; track ticket.id) {
-          <a
+          <button
+            type="button"
             class="widgetTab__noDecoration___2F1Vh srListItem__requestListItem___1upUH"
-            [routerLink]="['/tickets', ticket.id]"
-            [queryParams]="ticketQueryParams()"
+            (click)="openTicket(ticket.id)"
           >
             <div class="srListItem__content">
               <div class="srListItem__main">
@@ -144,7 +144,7 @@
                 </div>
               </div>
             </div>
-          </a>
+          </button>
         }
       </div>
       @if (activeTickets.length > pageSize) {

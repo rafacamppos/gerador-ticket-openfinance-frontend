@@ -52,31 +52,40 @@
     </section>
   </main>
 
-  @if (!isLoginRoute) {
-    <section class="portal-footer-banner" aria-label="Identidade visual do portal">
-      <article class="portal-footer-banner__card portal-footer-banner__card--left">
-        <img
-          class="portal-footer-banner__card-image"
-          src="/img/icone-centro.png"
-          alt="Painel esquerdo"
-        />
-      </article>
+  <section
+    class="portal-footer-banner"
+    [class.portal-footer-banner--auth]="!isLoginRoute"
+    aria-label="Marcas do portal"
+  >
+    <div class="portal-footer-banner__card portal-footer-banner__card--left">
+      <img
+        class="portal-footer-banner__card-image"
+        src="/img/icone-centro.png"
+        alt="Logo à esquerda"
+      />
+    </div>
+    <div class="portal-footer-banner__card portal-footer-banner__card--center">
+      <img
+        class="portal-footer-banner__card-image"
+        src="/img/icone-esquerda.jpeg"
+        alt="Logo central"
+      />
+    </div>
+    <div class="portal-footer-banner__card portal-footer-banner__card--right">
+      <img
+        class="portal-footer-banner__card-image"
+        src="/img/icone-direita.png"
+        alt="Logo à direita"
+      />
+    </div>
+  </section>
 
-      <article class="portal-footer-banner__card portal-footer-banner__card--center portal-footer-banner__card--brand">
-        <img
-          class="portal-footer-banner__card-image"
-          src="/img/icone-esquerda.jpeg"
-          alt="Painel central"
-        />
-      </article>
-
-      <article class="portal-footer-banner__card portal-footer-banner__card--right">
-        <img
-          class="portal-footer-banner__card-image"
-          src="/img/icone-direita.png"
-          alt="Painel direito"
-        />
-      </article>
-    </section>
+  @if (isNavigating && !isLoginRoute) {
+    <div class="route-loading" aria-hidden="true">
+      <div class="route-loading__panel">
+        <div class="route-loading__spinner"></div>
+        <span>Carregando tela...</span>
+      </div>
+    </div>
   }
 </div>

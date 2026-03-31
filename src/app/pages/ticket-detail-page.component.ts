@@ -2,7 +2,7 @@ import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   OpenFinanceApiService,
   TicketFlowResponse,
@@ -46,6 +46,7 @@ import { OWNER_TITLES } from '../ticket-owners';
 export class TicketDetailPageComponent implements OnInit {
   private readonly location = inject(Location);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly openFinanceApi = inject(OpenFinanceApiService);
   private readonly ticketService = inject(OpenFinanceTicketService);
 
@@ -228,6 +229,13 @@ export class TicketDetailPageComponent implements OnInit {
   }
 
   protected goBack(): void {
+    const ownerSlug = this.ownerContextSlug();
+
+    if (ownerSlug) {
+      void this.router.navigate(['/areas', ownerSlug]);
+      return;
+    }
+
     this.location.back();
   }
 

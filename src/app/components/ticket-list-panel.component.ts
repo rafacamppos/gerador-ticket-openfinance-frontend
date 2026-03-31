@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 
 import { TicketStatusOption } from '../services/open-finance-api.service';
 import {
@@ -17,7 +17,7 @@ type TicketStatusFilterOption = {
 @Component({
   selector: 'app-ticket-list-panel',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule],
   templateUrl: './ticket-list-panel.component.html',
   styleUrl: './ticket-list-panel.component.css',
 })
@@ -40,7 +40,10 @@ export class TicketListPanelComponent implements OnChanges {
   protected selectedMineTicketStatus = '';
   protected selectedReceivedTicketStatus = '';
 
-  constructor(private readonly ticketService: OpenFinanceTicketService) {}
+  constructor(
+    private readonly ticketService: OpenFinanceTicketService,
+    private readonly router: Router
+  ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['tickets']) {
@@ -202,6 +205,12 @@ export class TicketListPanelComponent implements OnChanges {
 
   protected ticketQueryParams(): Record<string, string> {
     return this.ownerSlug ? { ownerSlug: this.ownerSlug } : {};
+  }
+
+  protected async openTicket(ticketId: string): Promise<void> {
+    await this.router.navigate(['/tickets', ticketId], {
+      queryParams: this.ticketQueryParams(),
+    });
   }
 
   private isMine(ticket: TicketListItem): boolean {

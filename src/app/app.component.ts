@@ -1,6 +1,14 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
-import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import {
+  NavigationCancel,
+  NavigationEnd,
+  NavigationError,
+  NavigationStart,
+  Router,
+  RouterLink,
+  RouterOutlet,
+} from '@angular/router';
 import { filter, Subscription } from 'rxjs';
 import { OpenFinanceApiService } from './services/open-finance-api.service';
 import { ApplicationIncidentsService } from './services/application-incidents.service';
@@ -35,11 +43,27 @@ export class AppComponent implements OnInit, OnDestroy {
   protected environmentError = '';
   protected isUpdatingEnvironment = false;
   protected isLoginRoute = this.router.url.startsWith('/login');
+  protected isNavigating = false;
 
   async ngOnInit(): Promise<void> {
     this.routerSubscription = this.router.events
-      .pipe(filter((event) => event instanceof NavigationEnd))
-      .subscribe(() => {
+      .pipe(
+        filter(
+          (event) =>
+            event instanceof NavigationStart ||
+            event instanceof NavigationEnd ||
+            event instanceof NavigationCancel ||
+            event instanceof NavigationError
+        )
+      )
+      .subscribe((event) => {
+        if (event instanceof NavigationStart) {
+          this.isNavigating = true;
+          this.isLoginRoute = event.url.startsWith('/login');
+          return;
+        }
+
+        this.isNavigating = false;
         this.isLoginRoute = this.router.url.startsWith('/login');
         this.userName = this.authService.getUserName();
         this.homeRoute = this.authService.getHomeRoute();

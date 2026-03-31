@@ -1,396 +1,389 @@
-<section class="ticket-detail">
-  <div class="ticket-detail__header">
-    <button type="button" class="ticket-detail__back" (click)="goBack()">
-      <span class="ticket-detail__backIcon" aria-hidden="true">←</span>
-      <span>Voltar</span>
-    </button>
-  </div>
+<section class="dashboard">
+  <div class="dashboard__primary dashboard__primary--full">
+    <section class="ticket-detail">
+      <div class="ticket-detail__header">
+        <button type="button" class="ticket-detail__back" (click)="goBack()">
+          <span class="ticket-detail__backIcon" aria-hidden="true">←</span>
+          <span>Voltar</span>
+        </button>
+      </div>
 
-  @if (isLoading) {
-    <div class="ticket-detail__state">Carregando ticket...</div>
-  } @else if (errorMessage) {
-    <div class="ticket-detail__state ticket-detail__state--error">{{ errorMessage }}</div>
-  } @else if (ticket) {
-    <article class="ticket-detail__card">
-      <header class="ticket-detail__hero">
-        <div>
-          <div class="ticket-detail__eyebrow">Ticket #{{ formatValue(ticketPayload().id) }}</div>
-          <h2>{{ formatValue(ticketPayload().title) }}</h2>
-        </div>
-        <div class="ticket-detail__hero-badges">
-          @if (currentFlowState(); as flowState) {
-            <div class="ticket-detail__status ticket-detail__status--flow">
-              {{ flowStageLabel(flowState.current_stage_label) }}
+      @if (isLoading) {
+        <div class="ticket-detail__state">Carregando ticket...</div>
+      } @else if (errorMessage) {
+        <div class="ticket-detail__state ticket-detail__state--error">{{ errorMessage }}</div>
+      } @else if (ticket) {
+        <article class="ticket-detail__card">
+          <header class="ticket-detail__hero">
+            <div>
+              <div class="ticket-detail__eyebrow">Ticket #{{ formatValue(ticketPayload().id) }}</div>
+              <h2>{{ formatValue(ticketPayload().title) }}</h2>
             </div>
-          }
-          <div class="ticket-detail__status">{{ formatValue(ticketPayload().status) }}</div>
-        </div>
-      </header>
-
-      <div class="ticket-detail__sections">
-        <section class="ticket-detail__section">
-          <h3>Fluxo do ticket</h3>
-          @if (currentFlowState(); as flowState) {
-            <div class="ticket-detail__grid">
-              <div><strong>Estágio atual:</strong> {{ flowStageLabel(flowState.current_stage_label) }}</div>
-              <div><strong>Área atual:</strong> {{ formatValue(flowState.current_owner_name) }}</div>
-              <div><strong>Área atribuída:</strong> {{ formatValue(flowState.assigned_owner_name) }}</div>
-              <div><strong>Última ação:</strong> {{ flowActionLabel(flowState.last_action_label) }}</div>
-              <div><strong>Último ator:</strong> {{ formatValue(flowState.last_actor_name) }}</div>
-              <div><strong>Atualizado em:</strong> {{ formatValue(flowState.updated_at) }}</div>
+            <div class="ticket-detail__hero-badges">
+              @if (currentFlowState(); as flowState) {
+                <div class="ticket-detail__status ticket-detail__status--flow">
+                  {{ flowStageLabel(flowState.current_stage_label) }}
+                </div>
+              }
+              <div class="ticket-detail__status">{{ formatValue(ticketPayload().status) }}</div>
             </div>
+          </header>
 
-            @if (ownerContextSlug()) {
-              <div class="ticket-detail__flow-context">
-                Contexto atual da tela: <strong>{{ ownerContextTitle() }}</strong>
-              </div>
-            }
+          <div class="ticket-detail__sections">
+            <section class="ticket-detail__section">
+              <h3>Fluxo do ticket</h3>
+              @if (currentFlowState(); as flowState) {
+                <div class="ticket-detail__grid">
+                  <div><strong>Estágio atual:</strong> {{ flowStageLabel(flowState.current_stage_label) }}</div>
+                  <div><strong>Área atual:</strong> {{ formatValue(flowState.current_owner_name) }}</div>
+                  <div><strong>Área atribuída:</strong> {{ formatValue(flowState.assigned_owner_name) }}</div>
+                  <div><strong>Última ação:</strong> {{ flowActionLabel(flowState.last_action_label) }}</div>
+                  <div><strong>Último ator:</strong> {{ formatValue(flowState.last_actor_name) }}</div>
+                  <div><strong>Atualizado em:</strong> {{ formatValue(flowState.updated_at) }}</div>
+                </div>
 
-            <div class="ticket-detail__flow-actions">
-              <label class="ticket-detail__flow-label" for="flow-note">Observação da transição</label>
-              <textarea
-                id="flow-note"
-                class="ticket-detail__flow-textarea"
-                [(ngModel)]="flowNote"
-                placeholder="Opcional: registre o motivo do aceite, resposta ou devolução."
-              ></textarea>
-
-              <div class="ticket-detail__flow-buttons">
-                @if (canRouteToOwner()) {
-                  @if (!isRouteFormVisible) {
-                    <button
-                      type="button"
-                      class="ticket-detail__flow-button ticket-detail__flow-button--primary"
-                      (click)="showRouteForm()"
-                      [disabled]="isSubmittingFlow"
-                    >
-                      Direcionar
-                    </button>
-                  }
+                @if (ownerContextSlug()) {
+                  <div class="ticket-detail__flow-context">
+                    Contexto atual da tela: <strong>{{ ownerContextTitle() }}</strong>
+                  </div>
                 }
 
-                @if (canAccept()) {
-                  <button
-                    type="button"
-                    class="ticket-detail__flow-button ticket-detail__flow-button--primary"
-                    (click)="acceptTicket()"
-                    [disabled]="isSubmittingFlow"
-                  >
-                    Aceitar ticket
-                  </button>
-                }
-
-                @if (canRespond()) {
-                  <button
-                    type="button"
-                    class="ticket-detail__flow-button ticket-detail__flow-button--primary"
-                    (click)="respondTicket()"
-                    [disabled]="isSubmittingFlow"
-                  >
-                    Marcar como respondido
-                  </button>
-                }
-
-                @if (canReject()) {
-                  <button
-                    type="button"
-                    class="ticket-detail__flow-button ticket-detail__flow-button--danger"
-                    (click)="rejectTicket()"
-                    [disabled]="isSubmittingFlow"
-                  >
-                    Recusar ticket
-                  </button>
-                }
-
-                @if (canReturnToSu()) {
-                  <button
-                    type="button"
-                    class="ticket-detail__flow-button ticket-detail__flow-button--secondary"
-                    (click)="returnTicketToSu()"
-                    [disabled]="isSubmittingFlow"
-                  >
-                    Devolver ao SU
-                  </button>
-                }
-              </div>
-
-              @if (canRouteToOwner() && isRouteFormVisible) {
-                <div class="ticket-detail__route-form">
-                  <label class="ticket-detail__flow-label" for="route-owner">Equipe responsável</label>
-                  <select
-                    id="route-owner"
-                    class="ticket-detail__route-select"
-                    [(ngModel)]="selectedRouteOwnerSlug"
-                  >
-                    <option value="">Selecione uma equipe</option>
-                    @for (owner of routeOwnerOptions(); track owner.slug) {
-                      <option [value]="owner.slug">{{ owner.title }}</option>
-                    }
-                  </select>
+                <div class="ticket-detail__flow-actions">
+                  <label class="ticket-detail__flow-label" for="flow-note">Observação da transição</label>
+                  <textarea
+                    id="flow-note"
+                    class="ticket-detail__flow-textarea"
+                    [(ngModel)]="flowNote"
+                    placeholder="Opcional: registre o motivo do aceite, resposta ou devolução."
+                  ></textarea>
 
                   <div class="ticket-detail__flow-buttons">
-                    <button
-                      type="button"
-                      class="ticket-detail__flow-button ticket-detail__flow-button--primary"
-                      (click)="routeToResponsibleOwner()"
-                      [disabled]="isSubmittingFlow"
-                    >
-                      Enviar
-                    </button>
+                    @if (canRouteToOwner()) {
+                      @if (!isRouteFormVisible) {
+                        <button
+                          type="button"
+                          class="ticket-detail__flow-button ticket-detail__flow-button--primary"
+                          (click)="showRouteForm()"
+                          [disabled]="isSubmittingFlow"
+                        >
+                          Direcionar
+                        </button>
+                      }
+                    }
+
+                    @if (canAccept()) {
+                      <button
+                        type="button"
+                        class="ticket-detail__flow-button ticket-detail__flow-button--primary"
+                        (click)="acceptTicket()"
+                        [disabled]="isSubmittingFlow"
+                      >
+                        Aceitar ticket
+                      </button>
+                    }
+
+                    @if (canRespond()) {
+                      <button
+                        type="button"
+                        class="ticket-detail__flow-button ticket-detail__flow-button--primary"
+                        (click)="respondTicket()"
+                        [disabled]="isSubmittingFlow"
+                      >
+                        Marcar como respondido
+                      </button>
+                    }
+
+                    @if (canReject()) {
+                      <button
+                        type="button"
+                        class="ticket-detail__flow-button ticket-detail__flow-button--danger"
+                        (click)="rejectTicket()"
+                        [disabled]="isSubmittingFlow"
+                      >
+                        Recusar ticket
+                      </button>
+                    }
+
+                    @if (canReturnToSu()) {
+                      <button
+                        type="button"
+                        class="ticket-detail__flow-button ticket-detail__flow-button--secondary"
+                        (click)="returnTicketToSu()"
+                        [disabled]="isSubmittingFlow"
+                      >
+                        Devolver ao SU
+                      </button>
+                    }
+                  </div>
+
+                  @if (canRouteToOwner() && isRouteFormVisible) {
+                    <div class="ticket-detail__route-form">
+                      <label class="ticket-detail__flow-label" for="route-owner">Equipe responsável</label>
+                      <select
+                        id="route-owner"
+                        class="ticket-detail__route-select"
+                        [(ngModel)]="selectedRouteOwnerSlug"
+                      >
+                        <option value="">Selecione uma equipe</option>
+                        @for (owner of routeOwnerOptions(); track owner.slug) {
+                          <option [value]="owner.slug">{{ owner.title }}</option>
+                        }
+                      </select>
+
+                      <div class="ticket-detail__flow-buttons">
+                        <button
+                          type="button"
+                          class="ticket-detail__flow-button ticket-detail__flow-button--primary"
+                          (click)="routeToResponsibleOwner()"
+                          [disabled]="isSubmittingFlow"
+                        >
+                          Enviar
+                        </button>
+                        <button
+                          type="button"
+                          class="ticket-detail__flow-button ticket-detail__flow-button--ghost"
+                          (click)="hideRouteForm()"
+                          [disabled]="isSubmittingFlow"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  }
+
+                  @if (flowErrorMessage) {
+                    <div class="ticket-detail__flow-message ticket-detail__flow-message--error">
+                      {{ flowErrorMessage }}
+                    </div>
+                  }
+
+                  @if (flowSuccessMessage) {
+                    <div class="ticket-detail__flow-message ticket-detail__flow-message--success">
+                      {{ flowSuccessMessage }}
+                    </div>
+                  }
+                </div>
+
+                @if (flowEvents().length) {
+                  <div class="ticket-detail__history-toggle">
                     <button
                       type="button"
                       class="ticket-detail__flow-button ticket-detail__flow-button--ghost"
-                      (click)="hideRouteForm()"
-                      [disabled]="isSubmittingFlow"
+                      (click)="toggleFlowHistory()"
                     >
-                      Cancelar
+                      @if (isFlowHistoryVisible) {
+                        <span>Ocultar Historico</span>
+                      } @else {
+                        <span>Historico</span>
+                      }
                     </button>
                   </div>
-                </div>
-              }
 
-              @if (flowErrorMessage) {
-                <div class="ticket-detail__flow-message ticket-detail__flow-message--error">
-                  {{ flowErrorMessage }}
-                </div>
-              }
-
-              @if (flowSuccessMessage) {
-                <div class="ticket-detail__flow-message ticket-detail__flow-message--success">
-                  {{ flowSuccessMessage }}
-                </div>
-              }
-            </div>
-
-            @if (flowEvents().length) {
-              <div class="ticket-detail__history-toggle">
-                <button
-                  type="button"
-                  class="ticket-detail__flow-button ticket-detail__flow-button--ghost"
-                  (click)="toggleFlowHistory()"
-                >
                   @if (isFlowHistoryVisible) {
-                    <span>Ocultar Historico</span>
-                  } @else {
-                    <span>Historico</span>
+                    <div class="ticket-detail__raw-list">
+                      @for (event of flowEvents(); track event.id ?? $index) {
+                        <article class="ticket-detail__raw-item">
+                          <div class="ticket-detail__grid">
+                            <div><strong>Ação:</strong> {{ flowActionLabel(event.action_label) }}</div>
+                            <div><strong>Autor:</strong> {{ formatValue(event.actor_name) }}</div>
+                            <div><strong>De:</strong> {{ flowStageLabel(event.from_stage_label) }}</div>
+                            <div><strong>Para:</strong> {{ flowStageLabel(event.to_stage_label) }}</div>
+                            <div class="ticket-detail__grid-item--full">
+                              <strong>Data:</strong> {{ formatValue(event.created_at) }}
+                            </div>
+                            <div class="ticket-detail__grid-item--full">
+                              <strong>Observação:</strong>
+                              <pre class="ticket-detail__preformatted">{{ formatValue(event.note) }}</pre>
+                            </div>
+                          </div>
+                        </article>
+                      }
+                    </div>
                   }
-                </button>
-              </div>
+                }
+              } @else {
+                <p>Nenhum estado de fluxo foi encontrado para este ticket.</p>
+              }
+            </section>
 
-              @if (isFlowHistoryVisible) {
+            <section class="ticket-detail__section">
+              <h3>Informações principais</h3>
+              <div class="ticket-detail__grid">
+                <div class="ticket-detail__grid-item--full">
+                  <strong>Descrição resumida:</strong>
+                  <pre class="ticket-detail__preformatted">{{ formatValue(ticketDescription().summary) }}</pre>
+                </div>
+                <div class="ticket-detail__grid-item--full">
+                  <strong>Descrição completa:</strong>
+                  <pre class="ticket-detail__preformatted">{{ formatValue(ticketDescription().full) }}</pre>
+                </div>
+                <div><strong>Tipo:</strong> {{ formatValue(ticketPayload().type) }}</div>
+                <div><strong>Tipo de registro:</strong> {{ formatValue(ticketPayload().sr_type) }}</div>
+                <div><strong>Template:</strong> {{ formatValue(ticketPayload().template) }}</div>
+                <div><strong>Categoria Nível 1:</strong> {{ formatValue(ticketCategory().nivel1) }}</div>
+                <div><strong>Categoria Nível 2:</strong> {{ formatValue(ticketCategory().nivel2) }}</div>
+                <div><strong>Categoria Nível 3:</strong> {{ formatValue(ticketCategory().nivel3) }}</div>
+              </div>
+            </section>
+
+            <section class="ticket-detail__section">
+              <h3>Contexto da API</h3>
+              <div class="ticket-detail__grid">
+                <div><strong>Endpoint:</strong> {{ formatValue(apiContext().endpoint) }}</div>
+                <div><strong>HTTP Status:</strong> {{ formatValue(apiContext().http_status) }}</div>
+                <div><strong>Interaction Id:</strong> {{ formatValue(apiContext().interaction_id) }}</div>
+              </div>
+            </section>
+
+            <section class="ticket-detail__section">
+              <h3>SLA</h3>
+              <div class="ticket-detail__grid">
+                <div><strong>SLA em dias:</strong> {{ formatValue(slaPayload().sla_dias) }}</div>
+                <div><strong>SLA em atraso:</strong> {{ formatValue(slaPayload().sla_atraso) }}</div>
+                <div><strong>Status do SLA:</strong> {{ formatValue(slaPayload().status) }}</div>
+                <div><strong>Due date:</strong> {{ formatValue(slaPayload().due_date) }}</div>
+              </div>
+            </section>
+
+            <section class="ticket-detail__section">
+              <h3>Atribuição</h3>
+              <div class="ticket-detail__grid">
+                <div><strong>Solicitante:</strong> {{ formatValue(assignmentPayload().solicitante) }}</div>
+                <div><strong>Instituição requerente:</strong> {{ formatValue(assignmentPayload().instituicao_requerente) }}</div>
+                <div><strong>Responsável:</strong> {{ formatValue(assignmentPayload().responsavel) }}</div>
+                <div><strong>Grupo:</strong> {{ formatValue(assignmentPayload().grupo) }}</div>
+                <div><strong>Nível suporte atual:</strong> {{ formatValue(assignmentPayload().nivel_suporte_atual) }}</div>
+                <div><strong>Owner roteado:</strong> {{ routedOwnerName() }}</div>
+              </div>
+            </section>
+
+            <section class="ticket-detail__section">
+              <h3>Análise</h3>
+              <div class="ticket-detail__grid">
+                <div><strong>Tipo de erro:</strong> {{ formatValue(analysisPayload().erro_tipo) }}</div>
+                <div><strong>Procedente:</strong> {{ formatValue(analysisPayload().procedente) }}</div>
+                <div><strong>Escopo:</strong> {{ formatValue(analysisPayload().escopo) }}</div>
+                <div><strong>Monitoramento:</strong> {{ formatValue(analysisPayload().monitoramento) }}</div>
+                <div><strong>Tipo de cliente:</strong> {{ formatValue(analysisPayload().tipo_cliente) }}</div>
+              </div>
+            </section>
+
+            <section class="ticket-detail__section">
+              <h3>Solução</h3>
+              <div class="ticket-detail__grid">
+                <div class="ticket-detail__grid-item--full">
+                  <strong>Descrição:</strong>
+                  <pre class="ticket-detail__preformatted">{{ formatValue(solutionPayload().descricao) }}</pre>
+                </div>
+                <div class="ticket-detail__grid-item--full">
+                  <strong>Workaround:</strong>
+                  <pre class="ticket-detail__preformatted">{{ formatValue(solutionPayload().workaround) }}</pre>
+                </div>
+                <div><strong>Data prevista implementação:</strong> {{ formatValue(solutionPayload().data_prevista_implementacao) }}</div>
+                <div><strong>Data prevista implementação ms:</strong> {{ formatValue(solutionPayload().data_prevista_implementacao_ms) }}</div>
+              </div>
+            </section>
+
+            <section class="ticket-detail__section">
+              <h3>Timestamps</h3>
+              <div class="ticket-detail__grid">
+                <div><strong>Criado em:</strong> {{ formatValue(timestampsPayload().criado_em) }}</div>
+                <div><strong>Criado em ms:</strong> {{ formatValue(timestampsPayload().criado_em_ms) }}</div>
+                <div><strong>Atualizado em:</strong> {{ formatValue(timestampsPayload().atualizado_em) }}</div>
+                <div><strong>Atualizado em ms:</strong> {{ formatValue(timestampsPayload().atualizado_em_ms) }}</div>
+                <div><strong>Encerrado em:</strong> {{ formatValue(timestampsPayload().encerrado_em) }}</div>
+                <div><strong>Encerrado em ms:</strong> {{ formatValue(timestampsPayload().encerrado_em_ms) }}</div>
+              </div>
+            </section>
+
+            <section class="ticket-detail__section">
+              <h3>Ciclo de vida</h3>
+              <div class="ticket-detail__grid">
+                <div><strong>Reaberturas:</strong> {{ formatValue(lifecyclePayload().reopen_counter) }}</div>
+                <div><strong>Arquivado:</strong> {{ formatValue(lifecyclePayload().archived) }}</div>
+              </div>
+            </section>
+
+            <section class="ticket-detail__section">
+              <h3>Raw fields</h3>
+              @if (rawFieldsPayload().length) {
                 <div class="ticket-detail__raw-list">
-                  @for (event of flowEvents(); track event.id ?? $index) {
+                  @for (field of rawFieldsPayload(); track field.key ?? $index) {
                     <article class="ticket-detail__raw-item">
-                      <div class="ticket-detail__grid">
-                        <div><strong>De:</strong> {{ flowStageLabel(event.from_stage_label) }}</div>
-                        <div><strong>Para:</strong> {{ flowStageLabel(event.to_stage_label) }}</div>
-                        <div class="ticket-detail__grid-item--full">
-                          <strong>Data:</strong> {{ formatValue(event.created_at) }}
-                        </div>
-                      </div>
+                      <strong>{{ formatValue(field.label ?? field.key) }}</strong>
+                      <span>{{ formatValue(field.value) }}</span>
                     </article>
                   }
                 </div>
+              } @else {
+                <p>Não foram encontrados raw fields para este ticket.</p>
               }
-            }
-          } @else {
-            <p>Nenhum estado de fluxo foi encontrado para este ticket.</p>
-          }
-        </section>
+            </section>
 
-        <section class="ticket-detail__section">
-          <h3>Informações principais</h3>
-          <div class="ticket-detail__grid">
-            <div class="ticket-detail__grid-item--full">
-              <strong>Descrição resumida:</strong>
-              <pre class="ticket-detail__preformatted">{{ formatValue(ticketDescription().summary) }}</pre>
-            </div>
-            <div class="ticket-detail__grid-item--full">
-              <strong>Descrição completa:</strong>
-              <pre class="ticket-detail__preformatted">{{ formatValue(ticketDescription().full) }}</pre>
-            </div>
-            <div><strong>Tipo:</strong> {{ formatValue(ticketPayload().type) }}</div>
-            <div><strong>Tipo de registro:</strong> {{ formatValue(ticketPayload().sr_type) }}</div>
-            <div><strong>Template:</strong> {{ formatValue(ticketPayload().template) }}</div>
-            <div><strong>Categoria Nível 1:</strong> {{ formatValue(ticketCategory().nivel1) }}</div>
-            <div><strong>Categoria Nível 2:</strong> {{ formatValue(ticketCategory().nivel2) }}</div>
-            <div><strong>Categoria Nível 3:</strong> {{ formatValue(ticketCategory().nivel3) }}</div>
-          </div>
-        </section>
-
-        <section class="ticket-detail__section">
-          <h3>Contexto da API</h3>
-          <div class="ticket-detail__grid">
-            <div><strong>Endpoint:</strong> {{ formatValue(apiContext().endpoint) }}</div>
-            <div><strong>HTTP Status:</strong> {{ formatValue(apiContext().http_status) }}</div>
-            <div><strong>Interaction Id:</strong> {{ formatValue(apiContext().interaction_id) }}</div>
-          </div>
-        </section>
-
-        <section class="ticket-detail__section">
-          <h3>SLA</h3>
-          <div class="ticket-detail__grid">
-            <div><strong>SLA em dias:</strong> {{ formatValue(slaPayload().sla_dias) }}</div>
-            <div><strong>SLA em atraso:</strong> {{ formatValue(slaPayload().sla_atraso) }}</div>
-            <div><strong>Status do SLA:</strong> {{ formatValue(slaPayload().status) }}</div>
-            <div><strong>Due date:</strong> {{ formatValue(slaPayload().due_date) }}</div>
-          </div>
-        </section>
-
-        <section class="ticket-detail__section">
-          <h3>Atribuição</h3>
-          <div class="ticket-detail__grid">
-            <div><strong>Solicitante:</strong> {{ formatValue(assignmentPayload().solicitante) }}</div>
-            <div><strong>Instituição requerente:</strong> {{ formatValue(assignmentPayload().instituicao_requerente) }}</div>
-            <div><strong>Responsável:</strong> {{ formatValue(assignmentPayload().responsavel) }}</div>
-            <div><strong>Grupo:</strong> {{ formatValue(assignmentPayload().grupo) }}</div>
-            <div><strong>Nível suporte atual:</strong> {{ formatValue(assignmentPayload().nivel_suporte_atual) }}</div>
-            <div><strong>Owner roteado:</strong> {{ routedOwnerName() }}</div>
-          </div>
-        </section>
-
-        <section class="ticket-detail__section">
-          <h3>Análise</h3>
-          <div class="ticket-detail__grid">
-            <div><strong>Tipo de erro:</strong> {{ formatValue(analysisPayload().erro_tipo) }}</div>
-            <div><strong>Procedente:</strong> {{ formatValue(analysisPayload().procedente) }}</div>
-            <div><strong>Escopo:</strong> {{ formatValue(analysisPayload().escopo) }}</div>
-            <div><strong>Monitoramento:</strong> {{ formatValue(analysisPayload().monitoramento) }}</div>
-            <div><strong>Tipo de cliente:</strong> {{ formatValue(analysisPayload().tipo_cliente) }}</div>
-          </div>
-        </section>
-
-        <section class="ticket-detail__section">
-          <h3>Solução</h3>
-          <div class="ticket-detail__grid">
-            <div class="ticket-detail__grid-item--full">
-              <strong>Descrição:</strong>
-              <pre class="ticket-detail__preformatted">{{ formatValue(solutionPayload().descricao) }}</pre>
-            </div>
-            <div class="ticket-detail__grid-item--full">
-              <strong>Workaround:</strong>
-              <pre class="ticket-detail__preformatted">{{ formatValue(solutionPayload().workaround) }}</pre>
-            </div>
-            <div><strong>Data prevista implementação:</strong> {{ formatValue(solutionPayload().data_prevista_implementacao) }}</div>
-            <div><strong>Data prevista implementação ms:</strong> {{ formatValue(solutionPayload().data_prevista_implementacao_ms) }}</div>
-          </div>
-        </section>
-
-        <section class="ticket-detail__section">
-          <h3>Timestamps</h3>
-          <div class="ticket-detail__grid">
-            <div><strong>Criado em:</strong> {{ formatValue(timestampsPayload().criado_em) }}</div>
-            <div><strong>Criado em ms:</strong> {{ formatValue(timestampsPayload().criado_em_ms) }}</div>
-            <div><strong>Atualizado em:</strong> {{ formatValue(timestampsPayload().atualizado_em) }}</div>
-            <div><strong>Atualizado em ms:</strong> {{ formatValue(timestampsPayload().atualizado_em_ms) }}</div>
-            <div><strong>Encerrado em:</strong> {{ formatValue(timestampsPayload().encerrado_em) }}</div>
-            <div><strong>Encerrado em ms:</strong> {{ formatValue(timestampsPayload().encerrado_em_ms) }}</div>
-          </div>
-        </section>
-
-        <section class="ticket-detail__section">
-          <h3>Ciclo de vida</h3>
-          <div class="ticket-detail__grid">
-            <div><strong>Reaberturas:</strong> {{ formatValue(lifecyclePayload().reopen_counter) }}</div>
-            <div><strong>Arquivado:</strong> {{ formatValue(lifecyclePayload().archived) }}</div>
-          </div>
-        </section>
-
-        <section class="ticket-detail__section">
-          <h3>Raw fields</h3>
-          <div class="ticket-detail__raw-list">
-            @for (field of rawFieldsPayload(); track field.key) {
-              <article class="ticket-detail__raw-item">
-                <strong>{{ field.key }}</strong>
-                <span>{{ field.label }}</span>
-                <pre class="ticket-detail__preformatted">{{ formatValue(field.value) }}</pre>
-              </article>
-            }
-          </div>
-        </section>
-
-        <section class="ticket-detail__section">
-          <h3>Anotações</h3>
-          <div class="ticket-detail__raw-list">
-            @for (note of notesPayload(); track $index) {
-              <article class="ticket-detail__raw-item">
-                <strong>{{ formatValue(note.user_name) }}</strong>
-                <span>{{ formatValue(note.create_date) }}</span>
-                <pre class="ticket-detail__preformatted">{{ formatValue(note.text) }}</pre>
-              </article>
-            }
-          </div>
-        </section>
-
-        <section class="ticket-detail__section">
-          <h3>Atividades</h3>
-          <div class="ticket-detail__raw-list">
-            @for (activity of activitiesPayload(); track activity.id ?? $index) {
-              <article class="ticket-detail__raw-item">
-                <strong>{{ formatValue(activity.type) }}</strong>
-                <span>{{ formatValue(activity.logged_at) }}</span>
-                <pre class="ticket-detail__preformatted">{{ formatValue(activity.description) }}</pre>
-              </article>
-            }
-          </div>
-        </section>
-
-        <section class="ticket-detail__section">
-          <h3>Anexos</h3>
-          @if (attachmentsPayload().length) {
-            <div class="ticket-detail__raw-list">
-              @for (attachment of attachmentsPayload(); track attachmentTrackKey(attachment, $index)) {
-                <article class="ticket-detail__raw-item ticket-detail__attachment">
-                  <div class="ticket-detail__attachment-main">
-                    <strong>{{ attachmentName(attachment) }}</strong>
-                    <span>{{ formatValue(attachment.file_date ?? attachment.created_at) }}</span>
-                    <pre class="ticket-detail__preformatted">ID do arquivo: {{ formatValue(attachment.file_id) }}</pre>
-                  </div>
-                  @if (attachmentDownloadUrl(attachment); as downloadUrl) {
-                    <a
-                      class="ticket-detail__attachment-link"
-                      [href]="downloadUrl"
-                      [attr.download]="attachmentName(attachment)"
-                    >
-                      Baixar arquivo
-                    </a>
+            <section class="ticket-detail__section">
+              <h3>Anotações</h3>
+              @if (notesPayload().length) {
+                <div class="ticket-detail__raw-list">
+                  @for (note of notesPayload(); track $index) {
+                    <article class="ticket-detail__raw-item">
+                      <strong>{{ formatValue(note.user_name) }}</strong>
+                      <span>{{ formatValue(note.create_date) }}</span>
+                      <pre class="ticket-detail__preformatted">{{ formatValue(note.text) }}</pre>
+                    </article>
                   }
-                </article>
+                </div>
+              } @else {
+                <p>Não foram encontradas anotações para este ticket.</p>
               }
-            </div>
-          } @else {
-            <p>Nenhum anexo encontrado para este ticket.</p>
-          }
-        </section>
+            </section>
 
-        <section class="ticket-detail__section">
-          <h3>API Request</h3>
-          <div class="ticket-detail__grid">
-            <div class="ticket-detail__grid-item--full">
-              <strong>Headers:</strong>
-              <pre class="ticket-detail__preformatted">{{ formatValue(apiRequest().headers) }}</pre>
-            </div>
-            <div class="ticket-detail__grid-item--full">
-              <strong>Payload:</strong>
-              <pre class="ticket-detail__preformatted">{{ formatValue(apiRequest().payload) }}</pre>
-            </div>
-          </div>
-        </section>
+            <section class="ticket-detail__section">
+              <h3>Atividades</h3>
+              @if (activitiesPayload().length) {
+                <div class="ticket-detail__raw-list">
+                  @for (activity of activitiesPayload(); track activity.id ?? $index) {
+                    <article class="ticket-detail__raw-item">
+                      <strong>{{ formatValue(activity.type) }}</strong>
+                      <span>{{ formatValue(activity.logged_at) }}</span>
+                      <pre class="ticket-detail__preformatted">{{ formatValue(activity.description) }}</pre>
+                    </article>
+                  }
+                </div>
+              } @else {
+                <p>Não foram encontradas atividades para este ticket.</p>
+              }
+            </section>
 
-        <section class="ticket-detail__section">
-          <h3>API Response</h3>
-          <div class="ticket-detail__grid">
-            <div class="ticket-detail__grid-item--full">
-              <strong>Headers:</strong>
-              <pre class="ticket-detail__preformatted">{{ formatValue(apiResponse().headers) }}</pre>
-            </div>
-            <div class="ticket-detail__grid-item--full">
-              <strong>Payload:</strong>
-              <pre class="ticket-detail__preformatted">{{ formatValue(apiResponse().payload) }}</pre>
-            </div>
+            <section class="ticket-detail__section">
+              <h3>Anexos</h3>
+              @if (attachmentsPayload().length) {
+                <div class="ticket-detail__raw-list">
+                  @for (attachment of attachmentsPayload(); track attachmentTrackKey(attachment, $index)) {
+                    <article class="ticket-detail__raw-item ticket-detail__attachment">
+                      <div class="ticket-detail__attachment-main">
+                        <strong>{{ attachmentName(attachment) }}</strong>
+                        <span>{{ formatValue(attachment.file_date ?? attachment.created_at) }}</span>
+                      </div>
+                      @if (attachmentDownloadUrl(attachment); as downloadUrl) {
+                        <a
+                          class="ticket-detail__attachment-link"
+                          [href]="downloadUrl"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Baixar
+                        </a>
+                      }
+                    </article>
+                  }
+                </div>
+              } @else {
+                <p>Não foram encontrados anexos para este ticket.</p>
+              }
+            </section>
           </div>
-        </section>
-      </div>
-    </article>
-  }
+        </article>
+      }
+    </section>
+  </div>
 </section>

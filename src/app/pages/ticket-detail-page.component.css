@@ -1,3 +1,19 @@
+.dashboard {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 26px;
+}
+
+.dashboard__primary {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.dashboard__primary--full {
+  grid-column: 1 / -1;
+}
+
 .ticket-detail {
   display: flex;
   flex-direction: column;
