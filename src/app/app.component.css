@@ -221,6 +221,7 @@
   place-items: center;
   background: rgba(255, 255, 255, 0.68);
   backdrop-filter: blur(2px);
+  animation: route-loading-fade-in 0.18s ease;
 }
 
 .route-loading__panel {
@@ -250,6 +251,15 @@
 @keyframes route-loading-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes route-loading-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
