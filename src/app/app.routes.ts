@@ -9,6 +9,7 @@ import { TicketDashboardPageComponent } from './pages/ticket-dashboard-page.comp
 import { TicketDetailPageComponent } from './pages/ticket-detail-page.component';
 import { LoginPageComponent } from './pages/login-page.component';
 import { TicketOwnerPageComponent } from './pages/ticket-owner-page.component';
+import { StudyPlanPageComponent } from './pages/study-plan-page.component';
 
 export const routes: Routes = [
   {
@@ -44,5 +45,9 @@ export const routes: Routes = [
     path: 'tickets/:ticketId',
     component: TicketDetailPageComponent,
     canActivate: [authGuard],
+  },
+  {
+    path: 'plano-estudos',
+    component: StudyPlanPageComponent,
   },
 ];

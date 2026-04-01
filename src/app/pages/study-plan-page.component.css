@@ -1,0 +1,416 @@
+.study-plan {
+  padding: 24px;
+}
+
+.study-plan__content {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.widget {
+  border: 1px solid #cfcfcf;
+  background: #ffffff;
+}
+
+.widget__header {
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 0 16px;
+  background: #147d96;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+/* ── Hero ── */
+
+.plan-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 36px 32px 28px;
+  background:
+    linear-gradient(180deg, rgba(20, 125, 150, 0.05), rgba(20, 125, 150, 0)),
+    radial-gradient(circle at top right, rgba(20, 125, 150, 0.14), transparent 32%);
+  border-bottom: 1px solid #e8f0f3;
+}
+
+.plan-hero__eyebrow {
+  display: block;
+  color: #0f657b;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.plan-hero__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.plan-hero__copy h1 {
+  margin: 0;
+  color: #18353f;
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1.15;
+}
+
+.plan-hero__copy p {
+  margin: 0;
+  max-width: 680px;
+  color: #5f6368;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.plan-hero__stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 24px;
+  border: 1px solid #cfe1e6;
+  border-radius: 12px;
+  background: #ffffff;
+  min-width: 100px;
+}
+
+.stat-card__value {
+  color: #147d96;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-card__label {
+  color: #5f6368;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* ── Disciplines ── */
+
+.disciplines-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.discipline-card {
+  border-top: 1px solid #e8f0f3;
+  padding: 0;
+}
+
+.discipline-card__header {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 20px;
+  align-items: start;
+  padding: 28px 32px 20px;
+  background:
+    radial-gradient(circle at top right, rgba(20, 125, 150, 0.06), transparent 28%);
+}
+
+.discipline-card__number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: #147d96;
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.discipline-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.discipline-card__title {
+  margin: 0;
+  color: #18353f;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.discipline-card__summary {
+  margin: 0;
+  color: #5f6368;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.discipline-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.badge--duration {
+  background: #e3f2f6;
+  color: #0f657b;
+  border: 1px solid #b8d9e3;
+}
+
+.badge--hours {
+  background: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffcc80;
+}
+
+.badge--tag {
+  background: #f4f5f7;
+  color: #5f6368;
+  border: 1px solid #e0e0e0;
+}
+
+/* ── Body blocks ── */
+
+.discipline-card__body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  padding: 0 32px 28px;
+}
+
+.discipline-block {
+  padding: 20px 24px 20px 0;
+}
+
+.discipline-block + .discipline-block {
+  padding-left: 24px;
+  padding-right: 0;
+  border-left: 1px solid #e8f0f3;
+}
+
+.discipline-block__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  color: #147d96;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.discipline-block__icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* Objectives */
+
+.objective-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.objective-list__item {
+  position: relative;
+  padding-left: 20px;
+  color: #3c4a52;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.objective-list__item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #147d96;
+  flex-shrink: 0;
+}
+
+/* Activities */
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.activity-item {
+  padding: 12px 14px;
+  border: 1px solid #e8f0f3;
+  border-radius: 10px;
+  background: #f7fbfc;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.activity-item__description {
+  margin: 0;
+  color: #3c4a52;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.activity-item__tool {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #e3f2f6;
+  color: #0f657b;
+  font-size: 11px;
+  font-weight: 600;
+  align-self: flex-start;
+}
+
+/* ── Footer tips ── */
+
+.plan-footer {
+  border-top: 1px solid #e8f0f3;
+  padding: 32px;
+  background:
+    radial-gradient(circle at bottom left, rgba(20, 125, 150, 0.06), transparent 34%);
+}
+
+.plan-footer__content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.plan-footer__content h2 {
+  margin: 0;
+  color: #18353f;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.tips-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.tip-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+  border: 1px solid #d7e4e8;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.tip-card__icon {
+  color: #147d96;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.tip-card h3 {
+  margin: 0;
+  color: #18353f;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.tip-card p {
+  margin: 0;
+  color: #5f6368;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 920px) {
+  .study-plan {
+    padding: 16px;
+  }
+
+  .plan-hero {
+    padding: 24px 20px 20px;
+  }
+
+  .discipline-card__header {
+    padding: 24px 20px 16px;
+    grid-template-columns: 48px 1fr;
+    gap: 14px;
+  }
+
+  .discipline-card__number {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+    border-radius: 10px;
+  }
+
+  .discipline-card__body {
+    grid-template-columns: 1fr;
+    padding: 0 20px 24px;
+  }
+
+  .discipline-block + .discipline-block {
+    padding-left: 0;
+    border-left: none;
+    border-top: 1px solid #e8f0f3;
+  }
+
+  .tips-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .plan-footer {
+    padding: 24px 20px;
+  }
+}
+
+@media (max-width: 540px) {
+  .discipline-card__header {
+    grid-template-columns: 1fr;
+  }
+
+  .tips-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .plan-hero__stats {
+    gap: 10px;
+  }
+
+  .stat-card {
+    flex: 1 1 calc(50% - 5px);
+  }
+}

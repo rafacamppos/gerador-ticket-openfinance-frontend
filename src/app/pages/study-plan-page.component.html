@@ -1,0 +1,122 @@
+<section class="study-plan">
+  <div class="study-plan__content">
+    <article class="widget">
+      <header class="widget__header">
+        <span>Data Masters — Carreira AI Engineer</span>
+      </header>
+
+      <section class="plan-hero">
+        <div class="plan-hero__copy">
+          <span class="plan-hero__eyebrow">Santander · Certificação Interna</span>
+          <h1>Roteiro de Estudos Completo</h1>
+          <p>
+            Programa estruturado em 6 disciplinas para desenvolver, operacionalizar e manter
+            soluções de Inteligência Artificial que entregam valor de forma escalável, confiável
+            e governável.
+          </p>
+        </div>
+
+        <div class="plan-hero__stats">
+          <div class="stat-card">
+            <span class="stat-card__value">{{ totalWeeks }}</span>
+            <span class="stat-card__label">Semanas</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__value">{{ totalHours }}h</span>
+            <span class="stat-card__label">Carga horária</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__value">{{ disciplines.length }}</span>
+            <span class="stat-card__label">Disciplinas</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__value">24</span>
+            <span class="stat-card__label">Atividades práticas</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="disciplines-section">
+        @for (discipline of disciplines; track discipline.number) {
+          <article class="discipline-card">
+            <header class="discipline-card__header">
+              <span class="discipline-card__number">{{ discipline.number }}</span>
+              <div class="discipline-card__meta">
+                <h2 class="discipline-card__title">{{ discipline.title }}</h2>
+                <p class="discipline-card__summary">{{ discipline.summary }}</p>
+                <div class="discipline-card__badges">
+                  <span class="badge badge--duration">
+                    {{ discipline.durationWeeks }} {{ discipline.durationWeeks === 1 ? 'semana' : 'semanas' }}
+                  </span>
+                  <span class="badge badge--hours">{{ discipline.durationHours }}h</span>
+                  @for (tag of discipline.tags; track tag) {
+                    <span class="badge badge--tag">{{ tag }}</span>
+                  }
+                </div>
+              </div>
+            </header>
+
+            <div class="discipline-card__body">
+              <div class="discipline-block">
+                <h3 class="discipline-block__title">
+                  <span class="discipline-block__icon" aria-hidden="true">◎</span>
+                  Objetivos de Aprendizagem
+                </h3>
+                <ul class="objective-list">
+                  @for (objective of discipline.objectives; track objective) {
+                    <li class="objective-list__item">{{ objective }}</li>
+                  }
+                </ul>
+              </div>
+
+              <div class="discipline-block">
+                <h3 class="discipline-block__title">
+                  <span class="discipline-block__icon" aria-hidden="true">⬡</span>
+                  Atividades Práticas
+                </h3>
+                <div class="activity-list">
+                  @for (activity of discipline.activities; track activity.description) {
+                    <div class="activity-item">
+                      <p class="activity-item__description">{{ activity.description }}</p>
+                      @if (activity.tool) {
+                        <span class="activity-item__tool">{{ activity.tool }}</span>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          </article>
+        }
+      </section>
+
+      <section class="plan-footer">
+        <div class="plan-footer__content">
+          <h2>Dicas para Maximizar o Aprendizado</h2>
+          <div class="tips-grid">
+            <div class="tip-card">
+              <span class="tip-card__icon" aria-hidden="true">◈</span>
+              <h3>Consistência Diária</h3>
+              <p>Reserve 1–2h por dia. Regularidade supera maratonas esporádicas. Use técnicas de estudo como Pomodoro.</p>
+            </div>
+            <div class="tip-card">
+              <span class="tip-card__icon" aria-hidden="true">◈</span>
+              <h3>Projetos Reais</h3>
+              <p>Aplique cada disciplina em um projeto conectado ao contexto do Open Finance. Aprenda resolvendo problemas reais.</p>
+            </div>
+            <div class="tip-card">
+              <span class="tip-card__icon" aria-hidden="true">◈</span>
+              <h3>Documentação Ativa</h3>
+              <p>Registre aprendizados, erros e soluções em um repositório pessoal. Escrever consolida o conhecimento.</p>
+            </div>
+            <div class="tip-card">
+              <span class="tip-card__icon" aria-hidden="true">◈</span>
+              <h3>Comunidade</h3>
+              <p>Participe de grupos de estudo internos, contribua em fóruns e compartilhe projetos com colegas da equipe.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </article>
+  </div>
+</section>
