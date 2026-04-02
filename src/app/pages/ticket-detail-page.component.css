@@ -54,6 +54,10 @@
   border: 1px solid #d9d9d9;
   background: #ffffff;
   color: #5f6368;
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ticket-detail__state--error {

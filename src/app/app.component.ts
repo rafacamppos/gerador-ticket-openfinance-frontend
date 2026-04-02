@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   NavigationCancel,
@@ -34,6 +34,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private readonly applicationIncidentsService = inject(ApplicationIncidentsService);
   private readonly authService = inject(PortalAuthService);
   private readonly router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
   private routerSubscription: Subscription | null = null;
 
   protected userName = '';
@@ -60,6 +61,7 @@ export class AppComponent implements OnInit, OnDestroy {
         if (event instanceof NavigationStart) {
           this.isNavigating = true;
           this.isLoginRoute = event.url.startsWith('/login');
+          this.cdr.detectChanges();
           return;
         }
 
