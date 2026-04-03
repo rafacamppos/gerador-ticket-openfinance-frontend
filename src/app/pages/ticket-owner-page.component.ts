@@ -6,12 +6,13 @@ import { TicketListItem } from '../services/open-finance-ticket.service';
 import { TicketListPanelComponent } from '../components/ticket-list-panel.component';
 import { TicketListFacadeService } from '../services/ticket-list-facade.service';
 import { TeamWorkspaceHeaderComponent } from '../components/team-workspace-header.component';
+import { IconComponent } from '../components/icon.component';
 import { OWNER_TITLES } from '../ticket-owners';
 
 @Component({
   selector: 'app-ticket-owner-page',
   standalone: true,
-  imports: [TicketListPanelComponent, TeamWorkspaceHeaderComponent],
+  imports: [TicketListPanelComponent, TeamWorkspaceHeaderComponent, IconComponent],
   templateUrl: './ticket-owner-page.component.html',
   styleUrl: './ticket-owner-page.component.css',
 })
@@ -34,6 +35,17 @@ export class TicketOwnerPageComponent implements OnInit, OnDestroy {
   protected readonly ownerTitle = computed(
     () => OWNER_TITLES[this.ownerSlug()] ?? 'Area de Tickets'
   );
+  protected readonly lastRefreshedAt = signal<Date | null>(null);
+
+  protected lastRefreshedLabel(): string {
+    const date = this.lastRefreshedAt();
+    if (!date) return '';
+    const diffMs = Date.now() - date.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return 'Atualizado agora';
+    if (diffMin === 1) return 'Atualizado há 1 min';
+    return `Atualizado há ${diffMin} min`;
+  }
 
   protected get isLoadingTickets(): boolean {
     return this.isLoadingTicketsState();
@@ -105,6 +117,7 @@ export class TicketOwnerPageComponent implements OnInit, OnDestroy {
       }
 
       this.ticketsState.set(tickets);
+      this.lastRefreshedAt.set(new Date());
     } catch (error) {
       if (!this.isCurrentLoad(ownerSlug, loadVersion)) {
         return;

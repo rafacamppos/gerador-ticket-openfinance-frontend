@@ -4,14 +4,18 @@
       {{ errorMessage }}
     </div>
   } @else if (isLoading) {
-    <div class="tickets-result__state">Consultando tickets...</div>
+    <app-skeleton-loader [count]="5" />
   } @else if (hasSearched && !tickets.length) {
-    <div class="tickets-result__state tickets-result__state--warning">
-      {{ emptySearchMessage }}
+    <div class="empty-state">
+      <app-icon name="inbox" [size]="40" class="empty-state__icon" />
+      <p class="empty-state__title">Nenhum ticket localizado</p>
+      <p class="empty-state__body">{{ emptySearchMessage }}</p>
     </div>
   } @else if (!tickets.length) {
-    <div class="tickets-result__state">
-      {{ initialMessage }}
+    <div class="empty-state">
+      <app-icon name="clock" [size]="40" class="empty-state__icon" />
+      <p class="empty-state__title">Aguardando tickets</p>
+      <p class="empty-state__body">{{ initialMessage }}</p>
     </div>
   } @else {
     <div class="tickets-tabs" role="tablist" aria-label="Filtros de consulta">
@@ -26,7 +30,7 @@
           >
             <div [title]="'Meus chamados ' + myTickets.length">
               <span class="tabTitle">Meus chamados</span>
-              <span class="badge" [class.style__badgeActive___1614s]="isActiveTab('mine')">
+              <span class="badge" [class.badge--active]="isActiveTab('mine')">
                 {{ myTickets.length }}
               </span>
             </div>
@@ -42,7 +46,7 @@
           >
             <div [title]="'Recebidos ' + receivedTickets.length">
               <span class="tabTitle">Recebidos</span>
-              <span class="badge" [class.style__badgeActive___1614s]="isActiveTab('received')">
+              <span class="badge" [class.badge--active]="isActiveTab('received')">
                 {{ receivedTickets.length }}
               </span>
             </div>
@@ -76,68 +80,68 @@
     } @else if (isActiveTab('received') && isLoadingTicketStatuses) {
       <div class="tickets-result__state">Carregando status do ticket...</div>
     } @else if (!activeTickets.length) {
-      <div class="tickets-result__state tickets-result__state--warning">
-        @if (isActiveTab('mine')) {
-          Nenhum ticket foi localizado em <strong>Meus chamados</strong>.
-        } @else {
-          Nenhum ticket foi localizado em <strong>Recebidos</strong>.
-        }
+      <div class="empty-state empty-state--tab">
+        <app-icon name="inbox" [size]="32" class="empty-state__icon" />
+        <p class="empty-state__title">
+          @if (isActiveTab('mine')) {
+            Nenhum ticket em <strong>Meus chamados</strong>
+          } @else {
+            Nenhum ticket em <strong>Recebidos</strong>
+          }
+        </p>
       </div>
     } @else {
-      <div class="widgetTab__requestList">
+      <div class="ticket-list">
         @for (ticket of paginatedTickets; track ticket.id) {
           <button
             type="button"
-            class="widgetTab__noDecoration___2F1Vh srListItem__requestListItem___1upUH"
+            class="ticket-card"
             (click)="openTicket(ticket.id)"
           >
-            <div class="srListItem__content">
-              <div class="srListItem__main">
-                <div class="srListItem__defaultDetails___2UOMu">
-                  <div class="srListItem__iconWrapper___24jfq">
-                    <span class="iconIssue srListItem__listItemIcon___2sZIh IssueIcon"></span>
+            <div class="ticket-card__content">
+              <div class="ticket-card__main">
+                <div class="ticket-card__header-row">
+                  <div class="ticket-card__icon-wrapper">
+                    <app-icon name="ticket" [size]="14" class="ticket-card__dot" />
                   </div>
-                  <div class="srListItem__requestListItemSubject___3VIge">
+                  <div class="ticket-card__title">
                     <strong><span id="ticket_{{ ticket.id }}_num">#{{ ticket.id }}:</span></strong>
                     <span id="ticket_{{ ticket.id }}_title">{{ ticket.title }}</span>
                   </div>
                 </div>
-                <div class="badgesContainer__badges___2IrR4">
-                  <span class="badgesContainer__reqInfo___jtJmE">
-                    <span class="badge badge--status">
+                <div class="ticket-card__badges">
+                  <span class="ticket-card__badge-wrap">
+                    <span class="badge badge--status" [ngClass]="statusBadgeClass(ticket)">
                       Status:
                       <span id="ticket_{{ ticket.id }}_status">
                         {{ isActiveTab('received') ? resolveTicketStatus(ticket) : ticket.status }}
                       </span>
                     </span>
                   </span>
-                  <span class="badgesContainer__reqInfo___jtJmE">
+                  <span class="ticket-card__badge-wrap">
                     <span class="badge badge--flow">
                       Fluxo:
                       <span>{{ flowStageLabel(ticket) }}</span>
                     </span>
                   </span>
                 </div>
-                <div class="srListItem__requestListItemSummary___local">
+                <div class="ticket-card__summary">
                   {{ ticket.description }}
                 </div>
               </div>
-              <div class="columnsContainer__moreDetailsWrapper___2qXir">
-                <div class="columnsContainer__requestListItemMoreDetails___39suO">
+              <div class="ticket-card__meta-grid">
+                <div class="ticket-card__meta-col">
                   <strong>Data de modificacao</strong>
-                  <div class="columnsContainer__columnDefault___1BXC1">
-                    <div
-                      class="columnsContainer__textBlockEllipsis___2OcmZ"
-                      [title]="ticket.atualizadoEm"
-                    >
+                  <div class="ticket-card__meta-value">
+                    <div class="ticket-card__meta-text" [title]="ticket.atualizadoEm">
                       {{ ticket.atualizadoEm }}
                     </div>
                   </div>
                 </div>
-                <div class="columnsContainer__requestListItemMoreDetails___39suO">
+                <div class="ticket-card__meta-col">
                   <strong>Data de solicitacao</strong>
-                  <div class="columnsContainer__columnDefault___1BXC1">
-                    <div class="columnsContainer__textBlockEllipsis___2OcmZ" [title]="ticket.criadoEm">
+                  <div class="ticket-card__meta-value">
+                    <div class="ticket-card__meta-text" [title]="ticket.criadoEm">
                       {{ ticket.criadoEm }}
                     </div>
                   </div>

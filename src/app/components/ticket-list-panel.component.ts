@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { NgClass } from '@angular/common';
 import { Router } from '@angular/router';
 
 import { TicketStatusOption } from '../services/open-finance-api.service';
@@ -7,6 +8,8 @@ import {
   OpenFinanceTicketService,
   TicketListItem,
 } from '../services/open-finance-ticket.service';
+import { SkeletonLoaderComponent } from './skeleton-loader.component';
+import { IconComponent } from './icon.component';
 
 type TicketTab = 'mine' | 'received';
 type TicketStatusFilterOption = {
@@ -17,7 +20,7 @@ type TicketStatusFilterOption = {
 @Component({
   selector: 'app-ticket-list-panel',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, NgClass, SkeletonLoaderComponent, IconComponent],
   templateUrl: './ticket-list-panel.component.html',
   styleUrl: './ticket-list-panel.component.css',
 })
@@ -227,5 +230,16 @@ export class TicketListPanelComponent implements OnChanges {
     }
 
     this.activeTab = this.myTickets.length ? 'mine' : 'received';
+  }
+
+  protected statusBadgeClass(ticket: TicketListItem): string {
+    const status = (this.resolveTicketStatus(ticket) ?? '').toLowerCase();
+    if (/aberto|novo|new/.test(status)) return 'badge--status-open';
+    if (/andamento|an[aá]lise|progresso/.test(status)) return 'badge--status-in-progress';
+    if (/aguardando|pendente|waiting/.test(status)) return 'badge--status-waiting';
+    if (/resolvido|respondido|resolved/.test(status)) return 'badge--status-resolved';
+    if (/fechado|encerrado|closed/.test(status)) return 'badge--status-closed';
+    if (/cancelado|recusado|rejected/.test(status)) return 'badge--status-cancelled';
+    return 'badge--status-unknown';
   }
 }

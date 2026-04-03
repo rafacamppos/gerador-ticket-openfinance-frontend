@@ -358,3 +358,39 @@
     flex-direction: column;
   }
 }
+
+.ticket-detail__section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+}
+
+.ticket-detail__section-toggle h3 {
+  margin: 0;
+  color: #147d96;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.ticket-detail__section-toggle:hover h3 {
+  color: #0f657b;
+}
+
+.ticket-detail__section-body {
+  margin-top: 14px;
+}
+
+.ticket-detail__status--open        { background: #e8f3ff !important; color: #0052cc !important; }
+.ticket-detail__status--in-progress { background: #fff4d0 !important; color: #735200 !important; }
+.ticket-detail__status--waiting     { background: #f3efff !important; color: #5e3db3 !important; }
+.ticket-detail__status--resolved    { background: #e7f5ea !important; color: #1f6b34 !important; }
+.ticket-detail__status--closed      { background: #edf2f4 !important; color: #41515f !important; }
+.ticket-detail__status--cancelled   { background: #fde9e6 !important; color: #9e2f20 !important; }

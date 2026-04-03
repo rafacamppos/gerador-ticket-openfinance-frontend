@@ -22,16 +22,11 @@
 .widget__header {
   display: flex;
   align-items: center;
-  min-height: 68px;
+  min-height: 64px;
   padding: 0 20px;
-  background: linear-gradient(135deg, #106b81, #147d96);
-  color: #ffffff;
-}
-
-.widget__header span {
-  margin: 0;
-  font-size: 19px;
-  font-weight: 700;
+  background: #ffffff;
+  border-bottom: 1px solid #d9e6ea;
+  border-left: 4px solid #147d96;
 }
 
 .widget__header-main {
@@ -39,46 +34,72 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  min-width: 0;
-  gap: 10px;
+  gap: 16px;
 }
 
 .widget__titleBlock {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  min-width: 0;
+  gap: 2px;
+}
+
+.widget__titleBlock span:not(.widget__last-updated) {
+  color: #123f4d;
+  font-size: 17px;
+  font-weight: 700;
 }
 
 .widget__titleBlock small {
-  color: rgba(255, 255, 255, 0.8);
+  color: #5a6771;
   font-size: 12px;
-  line-height: 1.4;
+  font-weight: 400;
+}
+
+.widget__last-updated {
+  color: #8fa8b2;
+  font-size: 11px;
+  font-weight: 500;
 }
 
 .widget__refreshButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  border-radius: 999px;
-  background: transparent;
-  color: #ffffff;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #c6d4d8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #147d96;
   cursor: pointer;
+  flex-shrink: 0;
+  transition: background 120ms ease, border-color 120ms ease;
 }
 
 .widget__refreshButton:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.12);
+  background: #f0f7f9;
+  border-color: #a0c4cc;
 }
 
 .widget__refreshButton:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
-  opacity: 0.6;
 }
 
-.widget__refreshIcon {
-  font-size: 16px;
-  line-height: 1;
+.widget__refresh-bar {
+  height: 3px;
+  background: #e0eff2;
+  overflow: hidden;
+}
+
+.widget__refresh-progress {
+  height: 100%;
+  width: 40%;
+  background: #147d96;
+  animation: refresh-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes refresh-slide {
+  0%   { transform: translateX(-200%); }
+  100% { transform: translateX(450%); }
 }

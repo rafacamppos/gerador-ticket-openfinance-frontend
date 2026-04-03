@@ -14,6 +14,7 @@ import { OpenFinanceApiService } from './services/open-finance-api.service';
 import { ApplicationIncidentsService } from './services/application-incidents.service';
 import { OpenFinanceTicketService } from './services/open-finance-ticket.service';
 import { PortalAuthService } from './services/portal-auth.service';
+import { ToastContainerComponent } from './components/toast-container.component';
 
 type OpenFinanceEnvironment = {
   key: string;
@@ -24,7 +25,7 @@ type OpenFinanceEnvironment = {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterLink, RouterOutlet],
+  imports: [RouterLink, RouterOutlet, ToastContainerComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })

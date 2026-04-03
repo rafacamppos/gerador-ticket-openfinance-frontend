@@ -1,7 +1,10 @@
-import { Location } from '@angular/common';
+import { Location, NgClass } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { IconComponent } from '../components/icon.component';
+import { SkeletonLoaderComponent } from '../components/skeleton-loader.component';
+import { ToastService } from '../services/toast.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   OpenFinanceApiService,
@@ -39,7 +42,7 @@ import { OWNER_TITLES } from '../ticket-owners';
 @Component({
   selector: 'app-ticket-detail-page',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, NgClass, IconComponent, SkeletonLoaderComponent],
   templateUrl: './ticket-detail-page.component.html',
   styleUrl: './ticket-detail-page.component.css',
 })
@@ -49,6 +52,7 @@ export class TicketDetailPageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly openFinanceApi = inject(OpenFinanceApiService);
   private readonly ticketService = inject(OpenFinanceTicketService);
+  private readonly toastService = inject(ToastService);
 
   protected isLoading = true;
   protected errorMessage = '';
@@ -61,6 +65,34 @@ export class TicketDetailPageComponent implements OnInit {
   protected isRouteFormVisible = false;
   protected selectedRouteOwnerSlug = '';
   protected isFlowHistoryVisible = false;
+
+  private readonly collapsedSections = new Set<string>([
+    'contexto-api', 'sla', 'atribuicao', 'analise', 'solucao',
+    'timestamps', 'ciclo-de-vida', 'raw-fields', 'anotacoes', 'atividades', 'anexos',
+  ]);
+
+  protected isSectionOpen(key: string): boolean {
+    return !this.collapsedSections.has(key);
+  }
+
+  protected toggleSection(key: string): void {
+    if (this.collapsedSections.has(key)) {
+      this.collapsedSections.delete(key);
+    } else {
+      this.collapsedSections.add(key);
+    }
+  }
+
+  protected statusBadgeClass(status: unknown): string {
+    const s = (typeof status === 'string' ? status : '').toLowerCase();
+    if (/aberto|novo|new/.test(s)) return 'ticket-detail__status--open';
+    if (/andamento|an[aá]lise|progresso/.test(s)) return 'ticket-detail__status--in-progress';
+    if (/aguardando|pendente|waiting/.test(s)) return 'ticket-detail__status--waiting';
+    if (/resolvido|respondido|resolved/.test(s)) return 'ticket-detail__status--resolved';
+    if (/fechado|encerrado|closed/.test(s)) return 'ticket-detail__status--closed';
+    if (/cancelado|recusado|rejected/.test(s)) return 'ticket-detail__status--cancelled';
+    return '';
+  }
 
   async ngOnInit(): Promise<void> {
     const ticketId = this.route.snapshot.paramMap.get('ticketId');
@@ -452,6 +484,7 @@ export class TicketDetailPageComponent implements OnInit {
 
     try {
       this.flow = await this.openFinanceApi.transitionTicketFlow(ticketId, payload);
+      this.toastService.success('Fluxo atualizado com sucesso.');
       this.flowSuccessMessage = 'Fluxo atualizado com sucesso.';
       this.flowNote = '';
       this.isRouteFormVisible = false;
