@@ -79,7 +79,7 @@ export class ApplicationIncidentsService {
       });
   }
 
-  private mapIncidentItem(incident: ApplicationIncident): ApplicationIncidentListItem {
+  mapIncidentItem(incident: ApplicationIncident): ApplicationIncidentListItem {
     return {
       id: String(incident.id ?? ''),
       endpoint: String(incident.endpoint ?? 'Sem endpoint'),
@@ -90,30 +90,12 @@ export class ApplicationIncidentsService {
         : 'HTTP N/A',
       incidentStatusLabel: String(incident.incident_status_label ?? 'Nao informado'),
       relatedTicketId: incident.related_ticket_id ? String(incident.related_ticket_id) : null,
-      summary: this.resolveSummary(incident.error_payload),
+      summary: incident.title || 'Sem título',
       dataHora: this.formatDateTime(incident.occurred_at),
       dataHoraMs: this.parseDateMs(incident.occurred_at),
       createdAt: this.formatDateTime(incident.created_at),
       createdAtMs: this.parseDateMs(incident.created_at),
     };
-  }
-
-  private resolveSummary(payload: Record<string, unknown>): string {
-    const detail = payload?.['detail'];
-    if (typeof detail === 'string' && detail.trim()) {
-      return detail;
-    }
-
-    const message = payload?.['message'];
-    if (typeof message === 'string' && message.trim()) {
-      return message;
-    }
-
-    try {
-      return JSON.stringify(payload, null, 2);
-    } catch {
-      return 'Sem resumo do erro';
-    }
   }
 
   private formatDateTime(value: unknown): string {

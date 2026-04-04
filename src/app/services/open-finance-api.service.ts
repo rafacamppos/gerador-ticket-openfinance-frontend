@@ -5,6 +5,8 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
   ApplicationIncident,
+  CreateIncidentTicketPayload,
+  CreateIncidentTicketResponse,
   ReportApplicationIncidentPayload,
 } from './application-incidents.models';
 import {
@@ -210,6 +212,22 @@ export class OpenFinanceApiService {
       this.http.post<ApplicationIncident>(
         `${this.apiBaseUrl}/${encodeURIComponent(ownerSlug)}/application-incidents/${encodeURIComponent(incidentId)}/assign-to-me`,
         {},
+        {
+          withCredentials: true,
+        }
+      )
+    );
+  }
+
+  async createIncidentTicket(
+    ownerSlug: string,
+    incidentId: string,
+    payload: CreateIncidentTicketPayload
+  ): Promise<CreateIncidentTicketResponse> {
+    return firstValueFrom(
+      this.http.post<CreateIncidentTicketResponse>(
+        `${this.apiBaseUrl}/${encodeURIComponent(ownerSlug)}/application-incidents/${encodeURIComponent(incidentId)}/create-ticket`,
+        payload,
         {
           withCredentials: true,
         }

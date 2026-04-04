@@ -16,7 +16,7 @@
         <header class="detail-card__hero">
           <div>
             <div class="detail-card__eyebrow">Incidente #{{ formatValue(incident.id) }}</div>
-            <h2>{{ formatValue(incident.endpoint) }}</h2>
+            <h2>{{ formatValue(incident.title) }}</h2>
           </div>
           <div class="detail-card__hero-actions">
             <div class="detail-card__badges">
@@ -101,6 +101,11 @@
                 <strong>Endpoint:</strong>
                 <pre class="detail-card__preformatted">{{ formatValue(incident.endpoint) }}</pre>
               </div>
+              <div><strong>Tipo do Cliente:</strong> {{ formatValue(incident.tipo_cliente) }}</div>
+              <div><strong>Canal da Jornada:</strong> {{ formatValue(incident.canal_jornada) }}</div>
+              <div class="detail-card__grid-item--full">
+                <strong>Descrição:</strong> {{ formatValue(incident.description) }}
+              </div>
             </div>
           </section>
 
@@ -116,9 +121,28 @@
             </div>
           </section>
 
+          @if (incident.ticket_context) {
+            <section class="detail-card__section">
+              <h3>Contexto do ticket</h3>
+              <div class="detail-card__grid">
+                <div><strong>Destinatário:</strong> {{ formatValue(incident.ticket_context.destinatario) }}</div>
+                <div><strong>Categoria:</strong> {{ formatValue(incident.ticket_context.category_name) }}</div>
+                <div><strong>Subcategoria:</strong> {{ formatValue(incident.ticket_context.sub_category_name) }}</div>
+                <div><strong>Nível 3:</strong> {{ formatValue(incident.ticket_context.third_level_category_name) }}</div>
+                <div><strong>API:</strong> {{ formatValue(incident.endpoint) }}</div>
+                <div><strong>Versão:</strong> {{ formatValue(incident.ticket_context.api_version) }}</div>
+              </div>
+            </section>
+          }
+
           <section class="detail-card__section">
-            <h3>Payload do erro</h3>
-            <pre class="detail-card__preformatted">{{ formatValue(incident.error_payload) }}</pre>
+            <h3>Payload da solicitação (Request)</h3>
+            <pre class="detail-card__preformatted">{{ formatValue(incident.payload_request) }}</pre>
+          </section>
+
+          <section class="detail-card__section">
+            <h3>Payload da resposta (Response)</h3>
+            <pre class="detail-card__preformatted">{{ formatValue(incident.payload_response) }}</pre>
           </section>
         </div>
 
@@ -148,8 +172,7 @@
           </div>
           <div class="ticket-create-modal__header-side">
             <p>
-              Os campos abaixo ja vieram preenchidos com base no incidente e podem ser ajustados
-              antes da abertura do ticket.
+              Selecione o tipo de cliente e o canal da jornada para complementar o ticket.
             </p>
             <button
               type="button"
@@ -163,34 +186,8 @@
         </div>
 
         <div class="ticket-create-modal__grid">
-          <label class="ticket-create-modal__field">
-            <span>Problem Type</span>
-            <input
-              type="text"
-              [(ngModel)]="ticketForm.problem_type"
-              name="problemType"
-              placeholder="Incidentes_Diretório_Erro"
-            />
-          </label>
-
-          <label class="ticket-create-modal__field ticket-create-modal__field--full">
-            <span>Titulo</span>
-            <input
-              type="text"
-              [(ngModel)]="ticketForm.title"
-              name="ticketTitle"
-              placeholder="Titulo do ticket"
-            />
-          </label>
-
-          <label class="ticket-create-modal__field ticket-create-modal__field--full">
-            <span>Descricao</span>
-            <textarea
-              [(ngModel)]="ticketForm.description"
-              name="ticketDescription"
-              rows="14"
-            ></textarea>
-          </label>
+          <div><strong>Tipo do Cliente:</strong> {{ formatValue(incident.tipo_cliente) }}</div>
+          <div><strong>Canal da Jornada:</strong> {{ formatValue(incident.canal_jornada) }}</div>
         </div>
 
         <div class="ticket-create-modal__footer">

@@ -32,6 +32,7 @@ export class ApplicationIncidentDetailPageComponent implements OnInit {
   protected incident: ApplicationIncident | null = null;
   protected ticketForm = this.buildTicketForm();
 
+
   async ngOnInit(): Promise<void> {
     const ownerSlug = this.ownerSlug();
     const incidentId = this.incidentId();
@@ -45,7 +46,6 @@ export class ApplicationIncidentDetailPageComponent implements OnInit {
     try {
       this.incident = await this.openFinanceApi.getApplicationIncidentById(ownerSlug, incidentId);
       this.syncIncidentCache();
-      this.ticketForm = this.buildTicketForm(this.incident);
     } catch (error) {
       if (error instanceof HttpErrorResponse) {
         this.errorMessage = `Falha ao carregar incidente (${error.status}).`;
@@ -84,7 +84,6 @@ export class ApplicationIncidentDetailPageComponent implements OnInit {
         this.incident.id || ''
       );
       this.syncIncidentCache();
-      this.ticketForm = this.buildTicketForm(this.incident);
     } catch (error) {
       if (error instanceof HttpErrorResponse) {
         this.errorMessage = `Falha ao atribuir incidente (${error.status}).`;
@@ -116,7 +115,7 @@ export class ApplicationIncidentDetailPageComponent implements OnInit {
 
     this.ticketCreateError = '';
     this.ticketCreateSuccess = '';
-    this.ticketForm = this.buildTicketForm(this.incident);
+    this.ticketForm = this.buildTicketForm();
     this.isCreateTicketModalVisible = true;
   }
 
@@ -138,31 +137,15 @@ export class ApplicationIncidentDetailPageComponent implements OnInit {
     this.ticketCreateSuccess = '';
 
     try {
-      const payload = {
-        info: [
-          { key: 'problem_type', value: this.ticketForm.problem_type.trim() },
-          { key: 'title', value: this.ticketForm.title.trim() },
-          { key: 'description', value: this.ticketForm.description.trim() },
-        ],
-      };
-
-      const createdTicket = await this.openFinanceApi.createTicket(payload, { template: '20' });
-      const createdTicketId = Number(createdTicket.id);
-
-      if (!Number.isInteger(createdTicketId) || createdTicketId <= 0) {
-        throw new Error('A API retornou um numero de ticket invalido.');
-      }
-
-      this.incident = await this.openFinanceApi.transitionApplicationIncident(
+      const result = await this.openFinanceApi.createIncidentTicket(
         this.ownerSlug(),
         this.incident.id || '',
-        {
-          incident_status: 'ticket_created',
-          related_ticket_id: createdTicketId,
-        }
+        {}
       );
+
+      this.incident = result.incident;
       this.syncIncidentCache();
-      this.ticketCreateSuccess = `Ticket #${createdTicketId} criado com sucesso.`;
+      this.ticketCreateSuccess = `Ticket #${result.ticket_id} criado com sucesso.`;
       this.isCreateTicketModalVisible = false;
     } catch (error) {
       if (error instanceof HttpErrorResponse) {
@@ -216,7 +199,6 @@ export class ApplicationIncidentDetailPageComponent implements OnInit {
         }
       );
       this.syncIncidentCache();
-      this.ticketForm = this.buildTicketForm(this.incident);
     } catch (error) {
       if (error instanceof HttpErrorResponse) {
         this.errorMessage = `Falha ao atualizar incidente (${error.status}).`;
@@ -229,39 +211,8 @@ export class ApplicationIncidentDetailPageComponent implements OnInit {
     }
   }
 
-  private buildTicketForm(incident: ApplicationIncident | null = this.incident): {
-    problem_type: string;
-    title: string;
-    description: string;
-  } {
-    const endpoint = incident?.endpoint || 'Sem endpoint';
-    const method = incident?.method || 'N/A';
-    const statusCode = incident?.http_status_code ?? 'N/A';
-    const interactionId = incident?.x_fapi_interaction_id || 'Nao informado';
-    const authorizationServer = incident?.authorization_server || 'Nao informado';
-    const clientId = incident?.client_id || 'Nao informado';
-    const assignedTo = incident?.assigned_to_name || 'Nao atribuido';
-    const payload = this.formatValue(incident?.error_payload || {});
-
-    return {
-      problem_type: 'Incidentes_Diretório_Erro',
-      title: `[Incidente Aplicacao] ${method} ${endpoint} - HTTP ${statusCode}`,
-      description: [
-        'Ticket criado a partir de incidente de aplicacao.',
-        '',
-        `Equipe: ${incident?.team_name || 'Nao informado'}`,
-        `Endpoint: ${endpoint}`,
-        `Metodo: ${method}`,
-        `HTTP Status: ${statusCode}`,
-        `X-FAPI-Interaction-Id: ${interactionId}`,
-        `Authorization Server: ${authorizationServer}`,
-        `Client Id: ${clientId}`,
-        `Usuario atribuido: ${assignedTo}`,
-        '',
-        'Payload do erro:',
-        payload,
-      ].join('\n'),
-    };
+  private buildTicketForm(): Record<string, never> {
+    return {};
   }
 
   private syncIncidentCache(): void {

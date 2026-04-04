@@ -107,6 +107,44 @@
                   </select>
                 </label>
 
+                <label class="incident-form__field incident-form__field--full">
+                  <span>Título</span>
+                  <input
+                    type="text"
+                    [(ngModel)]="incidentForm.title"
+                    name="title"
+                    placeholder="Ex: Falha na criação de consentimento"
+                  />
+                </label>
+
+                <label class="incident-form__field incident-form__field--full">
+                  <span>Descrição</span>
+                  <textarea
+                    [(ngModel)]="incidentForm.description"
+                    name="description"
+                    rows="3"
+                    placeholder="Ex: Erro retornado ao tentar criar consentimento via endpoint POST /consents"
+                  ></textarea>
+                </label>
+
+                <label class="incident-form__field">
+                  <span>Tipo do Cliente</span>
+                  <select [(ngModel)]="incidentForm.tipo_cliente" name="tipoCliente">
+                    @for (option of tipoClienteOptions(); track option) {
+                      <option [value]="option">{{ option }}</option>
+                    }
+                  </select>
+                </label>
+
+                <label class="incident-form__field">
+                  <span>Canal da Jornada</span>
+                  <select [(ngModel)]="incidentForm.canal_jornada" name="canalJornada">
+                    @for (option of canalJornadaOptions(); track option) {
+                      <option [value]="option">{{ option }}</option>
+                    }
+                  </select>
+                </label>
+
                 <label class="incident-form__field">
                   <span>X-FAPI-Interaction-Id</span>
                   <input
@@ -177,11 +215,21 @@
                 </label>
 
                 <label class="incident-form__field incident-form__field--full">
-                  <span>Payload do erro</span>
+                  <span>Payload Request (JSON)</span>
                   <textarea
-                    [(ngModel)]="incidentForm.error_payload"
-                    name="errorPayload"
-                    rows="10"
+                    [(ngModel)]="incidentForm.payload_request"
+                    name="payloadRequest"
+                    rows="8"
+                    spellcheck="false"
+                  ></textarea>
+                </label>
+
+                <label class="incident-form__field incident-form__field--full">
+                  <span>Payload Response (JSON)</span>
+                  <textarea
+                    [(ngModel)]="incidentForm.payload_response"
+                    name="payloadResponse"
+                    rows="8"
                     spellcheck="false"
                   ></textarea>
                 </label>

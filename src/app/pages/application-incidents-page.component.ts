@@ -8,7 +8,9 @@ import { ApplicationIncidentListPanelComponent } from '../components/application
 import { TeamWorkspaceHeaderComponent } from '../components/team-workspace-header.component';
 import {
   ApplicationIncidentListItem,
+  CANAL_JORNADA_OPTIONS,
   ReportApplicationIncidentPayload,
+  TIPO_CLIENTE_OPTIONS,
 } from '../services/application-incidents.models';
 import { ApplicationIncidentsFacadeService } from '../services/application-incidents-facade.service';
 import { OpenFinanceApiService } from '../services/open-finance-api.service';
@@ -42,17 +44,7 @@ export class ApplicationIncidentsPageComponent implements OnInit, OnDestroy {
   protected incidentSubmitError = '';
   protected incidentSubmitSuccess = '';
   protected isIncidentFormVisible = false;
-  protected incidentForm = {
-    targetOwnerSlug: '',
-    x_fapi_interaction_id: '',
-    authorization_server: '',
-    client_id: '',
-    endpoint: '',
-    method: 'POST',
-    error_payload: '{\n  "detail": ""\n}',
-    occurred_at: this.buildCurrentTimestampInput(),
-    http_status_code: '500',
-  };
+  protected incidentForm = this.buildEmptyIncidentForm();
 
   async ngOnInit(): Promise<void> {
     this.routeSubscription = this.route.paramMap.subscribe((params) => {
@@ -118,24 +110,39 @@ export class ApplicationIncidentsPageComponent implements OnInit, OnDestroy {
   }
 
   protected async submitIncident(): Promise<void> {
-    const errorPayloadText = this.incidentForm.error_payload.trim();
-
     this.isSubmittingIncident = true;
     this.incidentSubmitError = '';
     this.incidentSubmitSuccess = '';
 
     try {
-      let errorPayload: Record<string, unknown>;
+      let payloadRequest: Record<string, unknown>;
+      let payloadResponse: Record<string, unknown>;
 
       try {
-        errorPayload = JSON.parse(errorPayloadText) as Record<string, unknown>;
+        payloadRequest = JSON.parse(this.incidentForm.payload_request.trim()) as Record<string, unknown>;
       } catch {
-        throw new Error('The field "error_payload" must contain valid JSON.');
+        throw new Error('O campo "Payload Request" deve conter JSON válido.');
+      }
+
+      try {
+        payloadResponse = JSON.parse(this.incidentForm.payload_response.trim()) as Record<string, unknown>;
+      } catch {
+        throw new Error('O campo "Payload Response" deve conter JSON válido.');
       }
 
       const teamSlug = this.incidentForm.targetOwnerSlug.trim();
       if (!teamSlug) {
         throw new Error('Selecione a equipe responsável pelo incidente.');
+      }
+
+      const title = this.incidentForm.title.trim();
+      if (!title) {
+        throw new Error('O campo "Título" é obrigatório.');
+      }
+
+      const description = this.incidentForm.description.trim();
+      if (!description) {
+        throw new Error('O campo "Descrição" é obrigatório.');
       }
 
       const payload: ReportApplicationIncidentPayload = {
@@ -144,7 +151,12 @@ export class ApplicationIncidentsPageComponent implements OnInit, OnDestroy {
         client_id: this.incidentForm.client_id.trim(),
         endpoint: this.incidentForm.endpoint.trim(),
         method: this.incidentForm.method.trim().toUpperCase(),
-        error_payload: errorPayload,
+        title,
+        description,
+        tipo_cliente: this.incidentForm.tipo_cliente,
+        canal_jornada: this.incidentForm.canal_jornada,
+        payload_request: payloadRequest,
+        payload_response: payloadResponse,
         occurred_at: new Date(this.incidentForm.occurred_at).toISOString(),
         http_status_code: Number(this.incidentForm.http_status_code),
       };
@@ -157,7 +169,7 @@ export class ApplicationIncidentsPageComponent implements OnInit, OnDestroy {
       }
 
       this.incidentSubmitSuccess = 'Incidente cadastrado com sucesso.';
-      this.resetIncidentForm();
+      this.incidentForm = this.buildEmptyIncidentForm();
       this.isIncidentFormVisible = false;
       await this.loadIncidents(true);
     } catch (error) {
@@ -176,22 +188,31 @@ export class ApplicationIncidentsPageComponent implements OnInit, OnDestroy {
     return ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
   }
 
-  private resetIncidentForm(): void {
-    this.incidentForm = {
+  protected tipoClienteOptions(): readonly string[] {
+    return TIPO_CLIENTE_OPTIONS;
+  }
+
+  protected canalJornadaOptions(): readonly string[] {
+    return CANAL_JORNADA_OPTIONS;
+  }
+
+  private buildEmptyIncidentForm() {
+    return {
       targetOwnerSlug: '',
       x_fapi_interaction_id: '',
       authorization_server: '',
       client_id: '',
       endpoint: '',
       method: 'POST',
-      error_payload: '{\n  "detail": ""\n}',
-      occurred_at: this.buildCurrentTimestampInput(),
+      title: '',
+      description: '',
+      tipo_cliente: 'PF' as const,
+      canal_jornada: 'Não se aplica' as const,
+      payload_request: '{\n  \n}',
+      payload_response: '{\n  \n}',
+      occurred_at: new Date().toISOString().slice(0, 16),
       http_status_code: '500',
     };
-  }
-
-  private buildCurrentTimestampInput(): string {
-    return new Date().toISOString().slice(0, 16);
   }
 
   private async handleOwnerChange(ownerSlug: string): Promise<void> {
