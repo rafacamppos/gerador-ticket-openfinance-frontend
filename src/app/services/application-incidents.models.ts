@@ -2,13 +2,21 @@ export const TIPO_CLIENTE_OPTIONS = ['PF', 'PJ'] as const;
 export type TipoCliente = (typeof TIPO_CLIENTE_OPTIONS)[number];
 
 export const CANAL_JORNADA_OPTIONS = [
-  'App to app',
-  'App to browser',
-  'Browser to browser',
-  'Browser to app',
-  'Não se aplica',
+  'APP_TO_APP',
+  'APP_TO_BROWSER',
+  'BROWSER_TO_BROWSER',
+  'BROWSER_TO_APP',
+  'NA',
 ] as const;
 export type CanalJornada = (typeof CANAL_JORNADA_OPTIONS)[number];
+
+export const CANAL_JORNADA_LABELS: Record<CanalJornada, string> = {
+  APP_TO_APP:         'App to app',
+  APP_TO_BROWSER:     'App to browser',
+  BROWSER_TO_BROWSER: 'Browser to browser',
+  BROWSER_TO_APP:     'Browser to app',
+  NA:                 'Não se aplica',
+};
 
 export type TicketContext = {
   destinatario: string | null;
@@ -35,7 +43,7 @@ export type ApplicationIncident = {
   title: string | null;
   description: string | null;
   tipo_cliente: TipoCliente | null;
-  canal_jornada: CanalJornada | null;
+  canal_jornada: string | null;
   payload_request: Record<string, unknown>;
   payload_response: Record<string, unknown>;
   occurred_at: string | null;
@@ -82,7 +90,27 @@ export type ApplicationIncidentListItem = {
   createdAtMs: number;
 };
 
-export type CreateIncidentTicketPayload = Record<string, never>;
+export type TicketPreviewField = {
+  key: string;
+  label: string;
+  required: boolean;
+  value: string;
+  options: string[] | null;
+};
+
+export type TicketPreview = {
+  template_id: string;
+  template_type: number;
+  title: string;
+  description: string;
+  template_fields: TicketPreviewField[];
+};
+
+export type CreateIncidentTicketPayload = {
+  title?: string;
+  description?: string;
+  template_fields?: Array<{ key: string; value: string }>;
+};
 
 export type CreateIncidentTicketResponse = {
   incident: ApplicationIncident;

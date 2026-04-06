@@ -3,7 +3,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApplicationIncidentsFacadeService } from '../services/application-incidents-facade.service';
-import { ApplicationIncident } from '../services/application-incidents.models';
+import { ApplicationIncident, TicketPreview } from '../services/application-incidents.models';
 import { OpenFinanceApiService } from '../services/open-finance-api.service';
 import { PortalAuthService } from '../services/portal-auth.service';
 
@@ -25,11 +25,13 @@ export class ApplicationIncidentDetailPageComponent implements OnInit {
   protected isAssigningToMe = false;
   protected isUpdatingStatus = false;
   protected isCreateTicketModalVisible = false;
+  protected isLoadingTicketPreview = false;
   protected isCreatingTicket = false;
   protected errorMessage = '';
   protected ticketCreateError = '';
   protected ticketCreateSuccess = '';
   protected incident: ApplicationIncident | null = null;
+  protected ticketPreview: TicketPreview | null = null;
   protected ticketForm = this.buildTicketForm();
 
 
@@ -108,19 +110,38 @@ export class ApplicationIncidentDetailPageComponent implements OnInit {
     await this.transitionIncident('canceled');
   }
 
-  protected openCreateTicketModal(): void {
+  protected async openCreateTicketModal(): Promise<void> {
     if (!this.incident) {
       return;
     }
 
     this.ticketCreateError = '';
     this.ticketCreateSuccess = '';
-    this.ticketForm = this.buildTicketForm();
+    this.ticketPreview = null;
+    this.isLoadingTicketPreview = true;
     this.isCreateTicketModalVisible = true;
+
+    try {
+      const preview = await this.openFinanceApi.getTicketPreview(
+        this.ownerSlug(),
+        this.incident.id || ''
+      );
+      this.ticketPreview = preview;
+      this.ticketForm = this.buildTicketForm(preview);
+    } catch (error) {
+      if (error instanceof HttpErrorResponse) {
+        this.ticketCreateError = `Falha ao carregar campos do ticket (${error.status}).`;
+      } else {
+        this.ticketCreateError =
+          error instanceof Error ? error.message : 'Nao foi possivel carregar os campos.';
+      }
+    } finally {
+      this.isLoadingTicketPreview = false;
+    }
   }
 
   protected closeCreateTicketModal(): void {
-    if (this.isCreatingTicket) {
+    if (this.isCreatingTicket || this.isLoadingTicketPreview) {
       return;
     }
 
@@ -128,7 +149,7 @@ export class ApplicationIncidentDetailPageComponent implements OnInit {
   }
 
   protected async createTicket(): Promise<void> {
-    if (!this.incident || this.isCreatingTicket) {
+    if (!this.incident || !this.ticketPreview || this.isCreatingTicket) {
       return;
     }
 
@@ -140,7 +161,11 @@ export class ApplicationIncidentDetailPageComponent implements OnInit {
       const result = await this.openFinanceApi.createIncidentTicket(
         this.ownerSlug(),
         this.incident.id || '',
-        {}
+        {
+          title: this.ticketForm.title,
+          description: this.ticketForm.description,
+          template_fields: this.ticketForm.template_fields,
+        }
       );
 
       this.incident = result.incident;
@@ -211,8 +236,19 @@ export class ApplicationIncidentDetailPageComponent implements OnInit {
     }
   }
 
-  private buildTicketForm(): Record<string, never> {
-    return {};
+  private buildTicketForm(preview?: TicketPreview): {
+    title: string;
+    description: string;
+    template_fields: Array<{ key: string; value: string }>;
+  } {
+    if (!preview) {
+      return { title: '', description: '', template_fields: [] };
+    }
+    return {
+      title: preview.title,
+      description: preview.description,
+      template_fields: preview.template_fields.map((f) => ({ key: f.key, value: f.value })),
+    };
   }
 
   private syncIncidentCache(): void {

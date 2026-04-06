@@ -8,7 +8,9 @@ import { ApplicationIncidentListPanelComponent } from '../components/application
 import { TeamWorkspaceHeaderComponent } from '../components/team-workspace-header.component';
 import {
   ApplicationIncidentListItem,
+  CANAL_JORNADA_LABELS,
   CANAL_JORNADA_OPTIONS,
+  CanalJornada,
   ReportApplicationIncidentPayload,
   TIPO_CLIENTE_OPTIONS,
 } from '../services/application-incidents.models';
@@ -192,8 +194,12 @@ export class ApplicationIncidentsPageComponent implements OnInit, OnDestroy {
     return TIPO_CLIENTE_OPTIONS;
   }
 
-  protected canalJornadaOptions(): readonly string[] {
+  protected canalJornadaOptions(): readonly CanalJornada[] {
     return CANAL_JORNADA_OPTIONS;
+  }
+
+  protected canalJornadaLabel(value: CanalJornada): string {
+    return CANAL_JORNADA_LABELS[value];
   }
 
   private buildEmptyIncidentForm() {
@@ -207,7 +213,7 @@ export class ApplicationIncidentsPageComponent implements OnInit, OnDestroy {
       title: '',
       description: '',
       tipo_cliente: 'PF' as const,
-      canal_jornada: 'Não se aplica' as const,
+      canal_jornada: 'NA' as const,
       payload_request: '{\n  \n}',
       payload_response: '{\n  \n}',
       occurred_at: new Date().toISOString().slice(0, 16),

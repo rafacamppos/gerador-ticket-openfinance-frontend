@@ -97,10 +97,7 @@
               <div><strong>X-FAPI-Interaction-Id:</strong> {{ formatValue(incident.x_fapi_interaction_id) }}</div>
               <div><strong>Authorization Server:</strong> {{ formatValue(incident.authorization_server) }}</div>
               <div><strong>Client Id:</strong> {{ formatValue(incident.client_id) }}</div>
-              <div class="detail-card__grid-item--full">
-                <strong>Endpoint:</strong>
-                <pre class="detail-card__preformatted">{{ formatValue(incident.endpoint) }}</pre>
-              </div>
+              <div><strong>Endpoint:</strong> {{ formatValue(incident.endpoint) }}</div>
               <div><strong>Tipo do Cliente:</strong> {{ formatValue(incident.tipo_cliente) }}</div>
               <div><strong>Canal da Jornada:</strong> {{ formatValue(incident.canal_jornada) }}</div>
               <div class="detail-card__grid-item--full">
@@ -167,28 +164,83 @@
       <form class="ticket-create-modal" (ngSubmit)="createTicket()">
         <div class="ticket-create-modal__header">
           <div>
-            <div class="detail-card__eyebrow">Criacao de Ticket</div>
+            <div class="detail-card__eyebrow">Criação de Ticket</div>
             <h2>Criar ticket a partir do incidente #{{ formatValue(incident.id) }}</h2>
           </div>
           <div class="ticket-create-modal__header-side">
             <p>
-              Selecione o tipo de cliente e o canal da jornada para complementar o ticket.
+              Revise e edite os campos abaixo antes de criar o ticket. Os valores foram
+              preenchidos automaticamente a partir dos dados do incidente.
             </p>
             <button
               type="button"
               class="ticket-create-modal__close"
               (click)="closeCreateTicketModal()"
-              [disabled]="isCreatingTicket"
+              [disabled]="isCreatingTicket || isLoadingTicketPreview"
             >
               Fechar
             </button>
           </div>
         </div>
 
-        <div class="ticket-create-modal__grid">
-          <div><strong>Tipo do Cliente:</strong> {{ formatValue(incident.tipo_cliente) }}</div>
-          <div><strong>Canal da Jornada:</strong> {{ formatValue(incident.canal_jornada) }}</div>
-        </div>
+        @if (isLoadingTicketPreview) {
+          <div class="ticket-create-modal__loading">Carregando campos do template...</div>
+        } @else if (ticketPreview) {
+          <div class="ticket-create-modal__grid">
+            <label class="ticket-create-modal__field ticket-create-modal__field--full">
+              <span>Título <span class="ticket-create-modal__required">*</span></span>
+              <input
+                type="text"
+                [(ngModel)]="ticketForm.title"
+                name="ticketTitle"
+                required
+              />
+            </label>
+
+            <label class="ticket-create-modal__field ticket-create-modal__field--full">
+              <span>Descrição <span class="ticket-create-modal__required">*</span></span>
+              <textarea
+                [(ngModel)]="ticketForm.description"
+                name="ticketDescription"
+                rows="4"
+                required
+              ></textarea>
+            </label>
+
+            @if (ticketPreview.template_fields.length > 0) {
+              <div class="ticket-create-modal__field ticket-create-modal__field--full ticket-create-modal__section-label">
+                Campos do template
+              </div>
+
+              @for (field of ticketPreview.template_fields; track field.key; let i = $index) {
+                <label class="ticket-create-modal__field">
+                  <span>
+                    {{ field.label }}
+                    @if (field.required) {
+                      <span class="ticket-create-modal__required">*</span>
+                    }
+                  </span>
+                  @if (field.options) {
+                    <select
+                      [(ngModel)]="ticketForm.template_fields[i].value"
+                      [name]="'templateField_' + i"
+                    >
+                      @for (opt of field.options; track opt) {
+                        <option [value]="opt">{{ opt }}</option>
+                      }
+                    </select>
+                  } @else {
+                    <input
+                      type="text"
+                      [(ngModel)]="ticketForm.template_fields[i].value"
+                      [name]="'templateField_' + i"
+                    />
+                  }
+                </label>
+              }
+            }
+          </div>
+        }
 
         <div class="ticket-create-modal__footer">
           <div class="ticket-create-modal__messages">
@@ -202,14 +254,14 @@
               type="button"
               class="ticket-create-modal__secondary"
               (click)="closeCreateTicketModal()"
-              [disabled]="isCreatingTicket"
+              [disabled]="isCreatingTicket || isLoadingTicketPreview"
             >
               Cancelar
             </button>
             <button
               type="submit"
               class="ticket-create-modal__primary"
-              [disabled]="isCreatingTicket"
+              [disabled]="isCreatingTicket || isLoadingTicketPreview || !ticketPreview"
             >
               @if (isCreatingTicket) {
                 <span>Criando...</span>

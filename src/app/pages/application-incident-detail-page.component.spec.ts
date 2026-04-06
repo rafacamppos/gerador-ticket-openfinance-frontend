@@ -21,7 +21,7 @@ function makeIncident(overrides: Partial<ApplicationIncident> = {}): Application
     title: 'Falha na criação de consentimento',
     description: 'Erro ao criar consentimento',
     tipo_cliente: 'PF' as const,
-    canal_jornada: 'App to app' as const,
+    canal_jornada: 'App to app',
     payload_request: { consentId: 'urn:abc' },
     payload_response: { error: 'DETALHE_PGTO_INVALIDO' },
     occurred_at: '2026-04-01T10:00:00.000Z',

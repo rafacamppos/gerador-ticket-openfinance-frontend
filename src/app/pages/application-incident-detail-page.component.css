@@ -247,7 +247,8 @@
 }
 
 .ticket-create-modal__field input,
-.ticket-create-modal__field textarea {
+.ticket-create-modal__field textarea,
+.ticket-create-modal__field select {
   width: 100%;
   min-height: 44px;
   padding: 12px 14px;
@@ -259,9 +260,32 @@
 }
 
 .ticket-create-modal__field textarea {
-  min-height: 260px;
+  min-height: 100px;
   resize: vertical;
   line-height: 1.6;
+}
+
+.ticket-create-modal__required {
+  color: #ae2a19;
+  margin-left: 2px;
+}
+
+.ticket-create-modal__section-label {
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #f0f6f8;
+  color: #3a5a66;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ticket-create-modal__loading {
+  padding: 32px 24px;
+  color: #5f7a84;
+  font-size: 14px;
+  text-align: center;
 }
 
 .ticket-create-modal__footer {

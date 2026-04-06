@@ -140,7 +140,7 @@
                   <span>Canal da Jornada</span>
                   <select [(ngModel)]="incidentForm.canal_jornada" name="canalJornada">
                     @for (option of canalJornadaOptions(); track option) {
-                      <option [value]="option">{{ option }}</option>
+                      <option [value]="option">{{ canalJornadaLabel(option) }}</option>
                     }
                   </select>
                 </label>

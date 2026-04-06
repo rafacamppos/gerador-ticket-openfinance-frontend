@@ -8,6 +8,7 @@ import {
   CreateIncidentTicketPayload,
   CreateIncidentTicketResponse,
   ReportApplicationIncidentPayload,
+  TicketPreview,
 } from './application-incidents.models';
 import {
   TicketFlowResponse,
@@ -215,6 +216,15 @@ export class OpenFinanceApiService {
         {
           withCredentials: true,
         }
+      )
+    );
+  }
+
+  async getTicketPreview(ownerSlug: string, incidentId: string): Promise<TicketPreview> {
+    return firstValueFrom(
+      this.http.get<TicketPreview>(
+        `${this.apiBaseUrl}/${encodeURIComponent(ownerSlug)}/application-incidents/${encodeURIComponent(incidentId)}/ticket-preview`,
+        { withCredentials: true }
       )
     );
   }
