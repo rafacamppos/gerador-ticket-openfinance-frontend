@@ -126,6 +126,27 @@ describe('TicketListFacadeService', () => {
 
       expect(ticketServiceSpy.mergeTickets).toHaveBeenCalledOnceWith([], mappedTickets);
     });
+
+    it('aceita existingTickets como getter avaliado apos a chamada a API', async () => {
+      const existingTickets = [makeTicketItem({ id: '5' })];
+      const mappedTickets = [makeTicketItem({ id: '10' })];
+      const mergedTickets = [...existingTickets, ...mappedTickets];
+
+      apiSpy.listTickets.and.resolveTo([] as never);
+      ticketServiceSpy.mapTicketListPayload.and.returnValue(mappedTickets);
+      ticketServiceSpy.mergeTickets.and.returnValue(mergedTickets);
+
+      const getter = jasmine.createSpy('getter').and.returnValue(existingTickets);
+
+      const result = await service.loadTickets({
+        cacheOwnerSlug: 'consentimentos-outbound',
+        existingTickets: getter,
+      });
+
+      expect(getter).toHaveBeenCalled();
+      expect(ticketServiceSpy.mergeTickets).toHaveBeenCalledOnceWith(existingTickets, mappedTickets);
+      expect(result).toEqual(mergedTickets);
+    });
   });
 
   describe('loadKnownTickets', () => {
@@ -166,7 +187,7 @@ describe('TicketListFacadeService', () => {
 
   describe('loadTicketStatuses', () => {
     it('delega para openFinanceApi.listTicketStatuses', async () => {
-      const statuses: TicketStatusOption[] = [{ value: 'NOVO', label: 'Novo' }];
+      const statuses: TicketStatusOption[] = [{ id: '1', name: 'Novo' }];
       apiSpy.listTicketStatuses.and.resolveTo(statuses);
 
       const result = await service.loadTicketStatuses();

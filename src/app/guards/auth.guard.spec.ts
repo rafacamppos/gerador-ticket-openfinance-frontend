@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { Router, UrlTree } from '@angular/router';
+import { ActivatedRouteSnapshot, convertToParamMap, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 
 import { authGuard } from './auth.guard';
 import { PortalAuthService } from '../services/portal-auth.service';
@@ -7,6 +7,9 @@ import { PortalAuthService } from '../services/portal-auth.service';
 describe('authGuard', () => {
   let authServiceSpy: jasmine.SpyObj<PortalAuthService>;
   let routerSpy: jasmine.SpyObj<Router>;
+
+  const mockRoute = { paramMap: convertToParamMap({}) } as unknown as ActivatedRouteSnapshot;
+  const mockState = { url: '/' } as RouterStateSnapshot;
 
   beforeEach(() => {
     authServiceSpy = jasmine.createSpyObj<PortalAuthService>('PortalAuthService', [
@@ -23,8 +26,8 @@ describe('authGuard', () => {
     });
   });
 
-  async function runGuard(): Promise<boolean | UrlTree> {
-    return TestBed.runInInjectionContext(() => authGuard());
+  async function runGuard(): Promise<unknown> {
+    return TestBed.runInInjectionContext(() => authGuard(mockRoute, mockState));
   }
 
   it('retorna true quando sessao esta ativa', async () => {
@@ -41,7 +44,7 @@ describe('authGuard', () => {
     const result = await runGuard();
 
     expect(routerSpy.parseUrl).toHaveBeenCalledOnceWith('/login');
-    expect((result as UrlTree).toString()).toBe('/login');
+    expect((result as { toString(): string }).toString()).toBe('/login');
   });
 
   it('redireciona para /login quando ensureSession lanca excecao', async () => {
@@ -50,6 +53,6 @@ describe('authGuard', () => {
     const result = await runGuard();
 
     expect(routerSpy.parseUrl).toHaveBeenCalledOnceWith('/login');
-    expect((result as UrlTree).toString()).toBe('/login');
+    expect((result as { toString(): string }).toString()).toBe('/login');
   });
 });

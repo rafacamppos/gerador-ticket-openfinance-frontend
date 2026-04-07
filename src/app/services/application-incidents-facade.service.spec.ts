@@ -109,6 +109,7 @@ describe('ApplicationIncidentsFacadeService', () => {
           incidentStatus: 'new',
           incidentStatusLabel: 'Novo',
           relatedTicketId: null,
+          createdAt: '05-04-2026 09:01:00',
           createdAtMs: 1001,
         },
       ];

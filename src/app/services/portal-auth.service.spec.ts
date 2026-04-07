@@ -166,7 +166,8 @@ describe('PortalAuthService', () => {
 
       apiSpy.logout.and.rejectWith(new Error('Falha ao deslogar'));
 
-      await service.logout();
+      // logout usa try/finally: o finally executa mas a excecao e relancada
+      try { await service.logout(); } catch { /* esperado */ }
 
       expect(ticketServiceSpy.clearCache).toHaveBeenCalledTimes(2);
       expect(service.getUser()).toBeNull();

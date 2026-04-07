@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { Router, UrlTree } from '@angular/router';
+import { ActivatedRouteSnapshot, convertToParamMap, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 
 import { dashboardGuard } from './dashboard.guard';
 import { PortalAuthService } from '../services/portal-auth.service';
@@ -7,6 +7,9 @@ import { PortalAuthService } from '../services/portal-auth.service';
 describe('dashboardGuard', () => {
   let authServiceSpy: jasmine.SpyObj<PortalAuthService>;
   let routerSpy: jasmine.SpyObj<Router>;
+
+  const mockRoute = { paramMap: convertToParamMap({}) } as unknown as ActivatedRouteSnapshot;
+  const mockState = { url: '/dashboard' } as RouterStateSnapshot;
 
   beforeEach(() => {
     authServiceSpy = jasmine.createSpyObj<PortalAuthService>('PortalAuthService', [
@@ -25,8 +28,8 @@ describe('dashboardGuard', () => {
     });
   });
 
-  async function runGuard(): Promise<boolean | UrlTree> {
-    return TestBed.runInInjectionContext(() => dashboardGuard());
+  async function runGuard(): Promise<unknown> {
+    return TestBed.runInInjectionContext(() => dashboardGuard(mockRoute, mockState));
   }
 
   it('redireciona para /login quando sessao nao esta ativa', async () => {
@@ -35,7 +38,7 @@ describe('dashboardGuard', () => {
     const result = await runGuard();
 
     expect(routerSpy.parseUrl).toHaveBeenCalledOnceWith('/login');
-    expect((result as UrlTree).toString()).toBe('/login');
+    expect((result as { toString(): string }).toString()).toBe('/login');
   });
 
   it('retorna true quando usuario e perfil adm', async () => {
@@ -56,7 +59,7 @@ describe('dashboardGuard', () => {
     const result = await runGuard();
 
     expect(routerSpy.parseUrl).toHaveBeenCalledOnceWith('/areas/consentimentos-outbound');
-    expect((result as UrlTree).toString()).toBe('/areas/consentimentos-outbound');
+    expect((result as { toString(): string }).toString()).toBe('/areas/consentimentos-outbound');
   });
 
   it('redireciona para /login quando ensureSession lanca excecao', async () => {
@@ -65,6 +68,6 @@ describe('dashboardGuard', () => {
     const result = await runGuard();
 
     expect(routerSpy.parseUrl).toHaveBeenCalledOnceWith('/login');
-    expect((result as UrlTree).toString()).toBe('/login');
+    expect((result as { toString(): string }).toString()).toBe('/login');
   });
 });

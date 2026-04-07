@@ -31,7 +31,7 @@ describe('ownerAccessGuard', () => {
     } as unknown as ActivatedRouteSnapshot;
   }
 
-  async function runGuard(ownerSlug: string): Promise<boolean | UrlTree> {
+  async function runGuard(ownerSlug: string): Promise<unknown> {
     const route = makeRoute(ownerSlug);
     return TestBed.runInInjectionContext(() => ownerAccessGuard(route, null as never));
   }
@@ -42,7 +42,7 @@ describe('ownerAccessGuard', () => {
     const result = await runGuard('consentimentos-outbound');
 
     expect(routerSpy.parseUrl).toHaveBeenCalledOnceWith('/login');
-    expect((result as UrlTree).toString()).toBe('/login');
+    expect((result as { toString(): string }).toString()).toBe('/login');
   });
 
   it('retorna true quando usuario tem acesso ao owner', async () => {
@@ -63,7 +63,7 @@ describe('ownerAccessGuard', () => {
     const result = await runGuard('servicos-outbound');
 
     expect(routerSpy.parseUrl).toHaveBeenCalledOnceWith('/areas/detentora-pagamentos');
-    expect((result as UrlTree).toString()).toBe('/areas/detentora-pagamentos');
+    expect((result as { toString(): string }).toString()).toBe('/areas/detentora-pagamentos');
   });
 
   it('redireciona para /login quando ensureSession lanca excecao', async () => {
@@ -72,7 +72,7 @@ describe('ownerAccessGuard', () => {
     const result = await runGuard('consentimentos-inbound');
 
     expect(routerSpy.parseUrl).toHaveBeenCalledOnceWith('/login');
-    expect((result as UrlTree).toString()).toBe('/login');
+    expect((result as { toString(): string }).toString()).toBe('/login');
   });
 
   it('passa string vazia para canAccessOwner quando ownerSlug nao esta na rota', async () => {

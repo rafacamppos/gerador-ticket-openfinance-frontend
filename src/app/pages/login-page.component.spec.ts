@@ -145,7 +145,8 @@ describe('LoginPageComponent', () => {
   }));
 
   it('define isSubmitting como true durante o login e false apos concluir', fakeAsync(() => {
-    let resolveLogin!: (value: unknown) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let resolveLogin!: (value: any) => void;
     authServiceSpy.login.and.returnValue(
       new Promise((resolve) => { resolveLogin = resolve; })
     );

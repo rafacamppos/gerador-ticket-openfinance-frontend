@@ -11,7 +11,7 @@ import { TicketStatusOption } from './open-finance-api.service';
 type LoadTicketsOptions = {
   apiOwnerSlug?: string;
   cacheOwnerSlug: string;
-  existingTickets?: TicketListItem[];
+  existingTickets?: TicketListItem[] | (() => TicketListItem[]);
 };
 
 @Injectable({
@@ -36,7 +36,10 @@ export class TicketListFacadeService {
   async loadTickets(options: LoadTicketsOptions): Promise<TicketListItem[]> {
     const payload = await this.openFinanceApi.listTickets(options.apiOwnerSlug);
     const syncedTickets = this.ticketService.mapTicketListPayload(payload);
-    const tickets = this.ticketService.mergeTickets(options.existingTickets || [], syncedTickets);
+    const existing = typeof options.existingTickets === 'function'
+      ? options.existingTickets()
+      : (options.existingTickets || []);
+    const tickets = this.ticketService.mergeTickets(existing, syncedTickets);
     this.ticketService.setTickets(options.cacheOwnerSlug, tickets);
     return tickets;
   }
