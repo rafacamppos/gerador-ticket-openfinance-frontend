@@ -164,12 +164,7 @@ export class TicketListPanelComponent implements OnChanges {
   protected selectTab(tab: TicketTab): void {
     this.activeTab = tab;
     this.currentPage = 1;
-
-    if (tab === 'received') {
-      this.receivedTicketsOpen.emit();
-    } else {
-      this.receivedTicketsOpen.emit();
-    }
+    this.receivedTicketsOpen.emit();
   }
 
   protected isActiveTab(tab: TicketTab): boolean {

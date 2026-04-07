@@ -209,8 +209,9 @@ export class TicketOwnerPageComponent implements OnInit, OnDestroy {
       ? Promise.resolve(false)
       : this.hydrateKnownTickets(ownerSlug, loadVersion);
     const syncTicketsPromise = this.loadTicketsForOwner(ownerSlug, loadVersion, backgroundRefresh);
+    const loadStatusesPromise = this.loadTicketStatuses();
 
-    await Promise.allSettled([knownTicketsPromise, syncTicketsPromise]);
+    await Promise.allSettled([knownTicketsPromise, syncTicketsPromise, loadStatusesPromise]);
 
     if (!this.isCurrentLoad(ownerSlug, loadVersion)) {
       return;
