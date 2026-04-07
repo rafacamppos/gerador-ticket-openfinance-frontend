@@ -111,7 +111,7 @@ export class ApplicationIncidentDetailPageComponent implements OnInit {
   }
 
   protected async openCreateTicketModal(): Promise<void> {
-    if (!this.incident) {
+    if (!this.incident || this.hasRelatedTicket()) {
       return;
     }
 
@@ -168,6 +168,14 @@ export class ApplicationIncidentDetailPageComponent implements OnInit {
         }
       );
 
+      const newTicketStatus = await this.resolveTicketStatusIdByName('NOVO');
+      await this.openFinanceApi.updateTicket(String(result.ticket_id || ''), {
+        id: String(result.ticket_id || ''),
+        info: [
+          { key: 'status', value: newTicketStatus },
+        ],
+      });
+
       this.incident = result.incident;
       this.syncIncidentCache();
       this.ticketCreateSuccess = `Ticket #${result.ticket_id} criado com sucesso.`;
@@ -201,6 +209,24 @@ export class ApplicationIncidentDetailPageComponent implements OnInit {
     }
 
     return false;
+  }
+
+  protected hasRelatedTicket(): boolean {
+    return Boolean(this.incident?.related_ticket_id);
+  }
+
+  private async resolveTicketStatusIdByName(statusName: string): Promise<string> {
+    const normalizedStatusName = String(statusName || '').trim().toUpperCase();
+    const statuses = await this.openFinanceApi.listTicketStatuses();
+    const matchedStatus = statuses.find(
+      (status) => String(status.name || '').trim().toUpperCase() === normalizedStatusName
+    );
+
+    if (!matchedStatus?.id) {
+      throw new Error(`Status "${normalizedStatusName}" não encontrado.`);
+    }
+
+    return String(matchedStatus.id);
   }
 
   private async transitionIncident(

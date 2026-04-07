@@ -12,8 +12,7 @@ export class PortalAuthService {
   private readonly api = inject(OpenFinanceApiService);
   private readonly ticketListFacade = inject(TicketListFacadeService);
   private readonly ticketService = inject(OpenFinanceTicketService);
-  private readonly storageKey = 'open-finance-portal-user';
-  private currentUser = this.loadStoredUser();
+  private currentUser: PortalUser | null = null;
 
   getUser(): PortalUser | null {
     return this.currentUser;
@@ -87,25 +86,10 @@ export class PortalAuthService {
 
   private storeUser(user: PortalUser): void {
     this.currentUser = user;
-    sessionStorage.setItem(this.storageKey, JSON.stringify(user));
   }
 
   private clearUser(): void {
     this.currentUser = null;
-    sessionStorage.removeItem(this.storageKey);
-  }
-
-  private loadStoredUser(): PortalUser | null {
-    try {
-      const rawValue = sessionStorage.getItem(this.storageKey);
-      if (!rawValue) {
-        return null;
-      }
-
-      return JSON.parse(rawValue) as PortalUser;
-    } catch {
-      return null;
-    }
   }
 
   private async preloadKnownTickets(user: PortalUser | null): Promise<void> {

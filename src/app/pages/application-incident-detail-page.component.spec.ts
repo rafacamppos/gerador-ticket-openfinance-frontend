@@ -6,7 +6,7 @@ import { ApplicationIncidentDetailPageComponent } from './application-incident-d
 import { OpenFinanceApiService } from '../services/open-finance-api.service';
 import { ApplicationIncidentsFacadeService } from '../services/application-incidents-facade.service';
 import { PortalAuthService } from '../services/portal-auth.service';
-import { ApplicationIncident } from '../services/application-incidents.models';
+import { ApplicationIncident, TicketPreview } from '../services/application-incidents.models';
 
 function makeIncident(overrides: Partial<ApplicationIncident> = {}): ApplicationIncident {
   return {
@@ -39,6 +39,32 @@ function makeIncident(overrides: Partial<ApplicationIncident> = {}): Application
   };
 }
 
+function makeTicketPreview(overrides: Partial<TicketPreview> = {}): TicketPreview {
+  return {
+    template_id: '123328',
+    template_type: 1,
+    title: 'Falha na criação de consentimento',
+    description: 'Erro ao criar consentimento',
+    template_fields: [
+      {
+        key: 'CustomColumn120sr',
+        label: 'Tipo do Cliente',
+        required: true,
+        value: 'PF',
+        options: ['PF', 'PJ'],
+      },
+      {
+        key: 'CustomColumn174sr',
+        label: 'Canal da Jornada',
+        required: true,
+        value: 'App to app',
+        options: ['App to app', 'App to browser'],
+      },
+    ],
+    ...overrides,
+  };
+}
+
 describe('ApplicationIncidentDetailPageComponent', () => {
   let apiSpy: jasmine.SpyObj<OpenFinanceApiService>;
   let facadeSpy: jasmine.SpyObj<ApplicationIncidentsFacadeService>;
@@ -51,7 +77,10 @@ describe('ApplicationIncidentDetailPageComponent', () => {
       'getApplicationIncidentById',
       'assignApplicationIncidentToMe',
       'transitionApplicationIncident',
+      'listTicketStatuses',
+      'getTicketPreview',
       'createIncidentTicket',
+      'updateTicket',
     ]);
 
     facadeSpy = jasmine.createSpyObj<ApplicationIncidentsFacadeService>(
@@ -119,17 +148,23 @@ describe('ApplicationIncidentDetailPageComponent', () => {
     fixture.detectChanges();
     tick();
 
-    expect(component.ticketForm).toEqual({});
+    expect(component.ticketForm).toEqual({
+      title: '',
+      description: '',
+      template_fields: [],
+    });
   }));
 
   it('createTicket chama createIncidentTicket com tipo_cliente e canal_jornada', fakeAsync(() => {
     const updatedIncident = makeIncident({ incident_status: 'ticket_created', related_ticket_id: '999' });
     apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
+    apiSpy.listTicketStatuses.and.resolveTo([{ id: '1', name: 'NOVO' }]);
     apiSpy.createIncidentTicket.and.resolveTo({
       incident: updatedIncident,
       ticket_id: '999',
       ticket: { id: 999 },
     });
+    apiSpy.updateTicket.and.resolveTo({});
 
     const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
     const component = fixture.componentInstance as any;
@@ -138,7 +173,15 @@ describe('ApplicationIncidentDetailPageComponent', () => {
     tick();
     fixture.detectChanges();
 
-    component.isCreateTicketModalVisible = true;
+    component.ticketPreview = makeTicketPreview();
+    component.ticketForm = {
+      title: 'Falha na criação de consentimento',
+      description: 'Erro ao criar consentimento',
+      template_fields: [
+        { key: 'CustomColumn120sr', value: 'PF' },
+        { key: 'CustomColumn174sr', value: 'App to app' },
+      ],
+    };
 
     void component.createTicket();
     tick();
@@ -147,19 +190,31 @@ describe('ApplicationIncidentDetailPageComponent', () => {
     expect(apiSpy.createIncidentTicket).toHaveBeenCalledWith(
       'consentimentos-inbound',
       '4',
-      {}
+      {
+        title: 'Falha na criação de consentimento',
+        description: 'Erro ao criar consentimento',
+        template_fields: [
+          { key: 'CustomColumn120sr', value: 'PF' },
+          { key: 'CustomColumn174sr', value: 'App to app' },
+        ],
+      }
     );
-    // ownerSlug vem do ActivatedRoute mock: 'consentimentos-inbound'
+    expect(apiSpy.updateTicket).toHaveBeenCalledWith('999', {
+      id: '999',
+      info: [{ key: 'status', value: '1' }],
+    });
   }));
 
   it('createTicket atualiza incident e exibe mensagem de sucesso', fakeAsync(() => {
     const updatedIncident = makeIncident({ incident_status: 'ticket_created', related_ticket_id: '777' });
     apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
+    apiSpy.listTicketStatuses.and.resolveTo([{ id: '1', name: 'NOVO' }]);
     apiSpy.createIncidentTicket.and.resolveTo({
       incident: updatedIncident,
       ticket_id: '777',
       ticket: { id: 777 },
     });
+    apiSpy.updateTicket.and.resolveTo({});
 
     const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
     const component = fixture.componentInstance as any;
@@ -168,7 +223,12 @@ describe('ApplicationIncidentDetailPageComponent', () => {
     tick();
     fixture.detectChanges();
 
-    component.isCreateTicketModalVisible = true;
+    component.ticketPreview = makeTicketPreview();
+    component.ticketForm = {
+      title: 'Falha na criação de consentimento',
+      description: 'Erro ao criar consentimento',
+      template_fields: [],
+    };
     void component.createTicket();
     tick();
     fixture.detectChanges();
@@ -181,6 +241,7 @@ describe('ApplicationIncidentDetailPageComponent', () => {
 
   it('createTicket exibe erro quando API falha', fakeAsync(() => {
     apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
+    apiSpy.listTicketStatuses.and.resolveTo([{ id: '1', name: 'NOVO' }]);
     apiSpy.createIncidentTicket.and.rejectWith(new Error('Campos obrigatórios não preenchidos'));
 
     const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
@@ -190,7 +251,12 @@ describe('ApplicationIncidentDetailPageComponent', () => {
     tick();
     fixture.detectChanges();
 
-    component.isCreateTicketModalVisible = true;
+    component.ticketPreview = makeTicketPreview();
+    component.ticketForm = {
+      title: 'Falha na criação de consentimento',
+      description: 'Erro ao criar consentimento',
+      template_fields: [],
+    };
     void component.createTicket();
     tick();
     fixture.detectChanges();
@@ -199,8 +265,39 @@ describe('ApplicationIncidentDetailPageComponent', () => {
     expect(component.isCreatingTicket).toBeFalse();
   }));
 
+  it('createTicket exibe erro quando status NOVO nao existe na lista de estados', fakeAsync(() => {
+    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
+    apiSpy.listTicketStatuses.and.resolveTo([{ id: '2', name: 'EM ANÁLISE N1' }]);
+    apiSpy.createIncidentTicket.and.resolveTo({
+      incident: makeIncident({ incident_status: 'ticket_created', related_ticket_id: '777' }),
+      ticket_id: '777',
+      ticket: { id: 777 },
+    });
+
+    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
+    const component = fixture.componentInstance as any;
+
+    fixture.detectChanges();
+    tick();
+    fixture.detectChanges();
+
+    component.ticketPreview = makeTicketPreview();
+    component.ticketForm = {
+      title: 'Falha na criação de consentimento',
+      description: 'Erro ao criar consentimento',
+      template_fields: [],
+    };
+    void component.createTicket();
+    tick();
+    fixture.detectChanges();
+
+    expect(component.ticketCreateError).toBe('Status "NOVO" não encontrado.');
+    expect(apiSpy.updateTicket).not.toHaveBeenCalled();
+  }));
+
   it('openCreateTicketModal reinicia o form e limpa erros anteriores', fakeAsync(() => {
     apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
+    apiSpy.getTicketPreview.and.resolveTo(makeTicketPreview());
 
     const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
     const component = fixture.componentInstance as any;
@@ -211,12 +308,54 @@ describe('ApplicationIncidentDetailPageComponent', () => {
 
     component.ticketCreateError = 'Erro anterior';
     component.ticketCreateSuccess = 'Sucesso anterior';
-    component.openCreateTicketModal();
+    void component.openCreateTicketModal();
+    tick();
+    fixture.detectChanges();
 
     expect(component.ticketCreateError).toBe('');
     expect(component.ticketCreateSuccess).toBe('');
-    expect(component.ticketForm).toEqual({});
+    expect(component.ticketForm).toEqual({
+      title: 'Falha na criação de consentimento',
+      description: 'Erro ao criar consentimento',
+      template_fields: [
+        { key: 'CustomColumn120sr', value: 'PF' },
+        { key: 'CustomColumn174sr', value: 'App to app' },
+      ],
+    });
     expect(component.isCreateTicketModalVisible).toBeTrue();
+  }));
+
+
+  it('desabilita criacao de ticket quando incidente ja possui ticket relacionado', fakeAsync(() => {
+    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident({ related_ticket_id: '777' }));
+
+    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
+    const component = fixture.componentInstance as any;
+
+    fixture.detectChanges();
+    tick();
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector('.detail-card__toolbar-actions button');
+
+    expect(component.hasRelatedTicket()).toBeTrue();
+    expect(button.disabled).toBeTrue();
+  }));
+
+  it('nao abre modal de criacao quando incidente ja possui ticket relacionado', fakeAsync(() => {
+    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident({ related_ticket_id: '777' }));
+
+    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
+    const component = fixture.componentInstance as any;
+
+    fixture.detectChanges();
+    tick();
+    fixture.detectChanges();
+
+    component.openCreateTicketModal();
+    tick();
+
+    expect(component.isCreateTicketModalVisible).toBeFalse();
   }));
 
   it('closeCreateTicketModal nao fecha enquanto cria ticket', fakeAsync(() => {

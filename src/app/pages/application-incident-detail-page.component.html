@@ -57,6 +57,7 @@
               type="button"
               class="detail-card__actionButton detail-card__actionButton--compact detail-card__actionButton--compactStatus"
               (click)="openCreateTicketModal()"
+              [disabled]="hasRelatedTicket()"
             >
               Criar ticket
             </button>

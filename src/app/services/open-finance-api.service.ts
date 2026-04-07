@@ -53,6 +53,14 @@ export type CreateTicketResponse = {
   id: string | number;
 };
 
+export type UpdateTicketPayload = {
+  id?: string;
+  info: Array<{
+    key: string;
+    value: string;
+  }>;
+};
+
 export type TicketStatusOption = {
   id: string | null;
   name: string | null;
@@ -159,6 +167,18 @@ export class OpenFinanceApiService {
         payload,
         {
           params,
+          withCredentials: true,
+        }
+      )
+    );
+  }
+
+  async updateTicket(ticketId: string, payload: UpdateTicketPayload): Promise<unknown> {
+    return firstValueFrom(
+      this.http.put(
+        `${this.apiBaseUrl}/tickets/${encodeURIComponent(ticketId)}`,
+        payload,
+        {
           withCredentials: true,
         }
       )
