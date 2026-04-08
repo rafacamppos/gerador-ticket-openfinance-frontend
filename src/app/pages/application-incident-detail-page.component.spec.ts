@@ -488,7 +488,7 @@ describe('ApplicationIncidentDetailPageComponent', () => {
     expect(result).toBe(JSON.stringify({ error: 'DETALHE_PGTO_INVALIDO' }, null, 2));
   }));
 
-  it('formatValue retorna "Nao informado" para valores nulos ou vazios', fakeAsync(() => {
+  it('formatValue retorna "Não informado" para valores nulos ou vazios', fakeAsync(() => {
     apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
 
     const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
@@ -497,9 +497,9 @@ describe('ApplicationIncidentDetailPageComponent', () => {
     fixture.detectChanges();
     tick();
 
-    expect(component.formatValue(null)).toBe('Nao informado');
-    expect(component.formatValue(undefined)).toBe('Nao informado');
-    expect(component.formatValue('')).toBe('Nao informado');
+    expect(component.formatValue(null)).toBe('Não informado');
+    expect(component.formatValue(undefined)).toBe('Não informado');
+    expect(component.formatValue('')).toBe('Não informado');
   }));
 
   it('formatDateTime formata timestamp ISO em horario local legivel', fakeAsync(() => {

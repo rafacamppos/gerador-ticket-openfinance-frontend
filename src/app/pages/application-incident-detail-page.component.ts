@@ -311,7 +311,7 @@ export class ApplicationIncidentDetailPageComponent implements OnInit {
 
   protected formatValue(value: unknown): string {
     if (value === null || value === undefined || value === '') {
-      return 'Nao informado';
+      return 'Não informado';
     }
 
     if (typeof value === 'object') {

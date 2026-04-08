@@ -250,16 +250,16 @@ describe('TicketDetailPageComponent', () => {
       fixture.detectChanges();
     });
 
-    it('retorna "Nao informado" para null', () => {
-      expect((component as unknown as { formatValue(v: unknown): string }).formatValue(null)).toBe('Nao informado');
+    it('retorna "Não informado" para null', () => {
+      expect((component as unknown as { formatValue(v: unknown): string }).formatValue(null)).toBe('Não informado');
     });
 
-    it('retorna "Nao informado" para undefined', () => {
-      expect((component as unknown as { formatValue(v: unknown): string }).formatValue(undefined)).toBe('Nao informado');
+    it('retorna "Não informado" para undefined', () => {
+      expect((component as unknown as { formatValue(v: unknown): string }).formatValue(undefined)).toBe('Não informado');
     });
 
-    it('retorna "Nao informado" para string vazia', () => {
-      expect((component as unknown as { formatValue(v: unknown): string }).formatValue('')).toBe('Nao informado');
+    it('retorna "Não informado" para string vazia', () => {
+      expect((component as unknown as { formatValue(v: unknown): string }).formatValue('')).toBe('Não informado');
     });
 
     it('retorna "Sim" para true', () => {
