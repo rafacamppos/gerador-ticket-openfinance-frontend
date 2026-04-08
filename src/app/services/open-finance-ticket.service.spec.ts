@@ -148,4 +148,95 @@ describe('OpenFinanceTicketService', () => {
       }),
     ]);
   });
+
+  it('mergeTickets mescla listas deduplicando pelo id, synced tem prioridade', () => {
+    const existing = [
+      {
+        id: '1', title: 'Antigo', description: 'Desc', status: 'NOVO', type: 'Inc',
+        ticketType: '1', template: '20', categoryNivel1: 'Cat', categoryNivel2: 'Sub',
+        categoryNivel3: 'N3', assignmentGroup: 'G', requesterInstitution: '',
+        criadoEm: '01-01-2026 10:00:00', criadoEmMs: 100,
+        atualizadoEm: '01-01-2026 10:00:00', atualizadoEmMs: 100,
+        flow: null,
+      },
+      {
+        id: '2', title: 'Somente existente', description: 'Desc', status: 'NOVO', type: 'Inc',
+        ticketType: '1', template: '20', categoryNivel1: 'Cat', categoryNivel2: 'Sub',
+        categoryNivel3: 'N3', assignmentGroup: 'G', requesterInstitution: '',
+        criadoEm: '01-01-2026 09:00:00', criadoEmMs: 50,
+        atualizadoEm: '01-01-2026 09:00:00', atualizadoEmMs: 50,
+        flow: null,
+      },
+    ];
+
+    const synced = [
+      {
+        id: '1', title: 'Atualizado', description: 'Nova desc', status: 'EM ATENDIMENTO', type: 'Inc',
+        ticketType: '1', template: '20', categoryNivel1: 'Cat', categoryNivel2: 'Sub',
+        categoryNivel3: 'N3', assignmentGroup: 'G', requesterInstitution: '',
+        criadoEm: '01-01-2026 10:00:00', criadoEmMs: 100,
+        atualizadoEm: '01-01-2026 11:00:00', atualizadoEmMs: 200,
+        flow: null,
+      },
+      {
+        id: '3', title: 'Apenas synced', description: 'Desc', status: 'NOVO', type: 'Inc',
+        ticketType: '1', template: '20', categoryNivel1: 'Cat', categoryNivel2: 'Sub',
+        categoryNivel3: 'N3', assignmentGroup: 'G', requesterInstitution: '',
+        criadoEm: '01-01-2026 12:00:00', criadoEmMs: 300,
+        atualizadoEm: '01-01-2026 12:00:00', atualizadoEmMs: 300,
+        flow: null,
+      },
+    ];
+
+    const merged = service.mergeTickets(existing, synced);
+
+    expect(merged.map((t) => t.id)).toEqual(['3', '1', '2']);
+    expect(merged.find((t) => t.id === '1')?.title).toBe('Atualizado');
+    expect(merged.find((t) => t.id === '2')?.title).toBe('Somente existente');
+    expect(merged.find((t) => t.id === '3')?.title).toBe('Apenas synced');
+  });
+
+  it('mergeTickets ignora tickets sem id', () => {
+    const existing = [
+      { id: '', title: 'Sem id', description: '', status: '', type: '', ticketType: '',
+        template: '', categoryNivel1: '', categoryNivel2: '', categoryNivel3: '',
+        assignmentGroup: '', requesterInstitution: '', criadoEm: '', criadoEmMs: 0,
+        atualizadoEm: '', atualizadoEmMs: 0, flow: null },
+    ];
+
+    const merged = service.mergeTickets(existing, []);
+    expect(merged.length).toBe(0);
+  });
+
+  it('clearCache remove todos os tickets da memoria e do sessionStorage', () => {
+    service.setTickets('equipe-a', [
+      {
+        id: '1', title: 'T', description: 'D', status: 'S', type: 'I',
+        ticketType: '1', template: '20', categoryNivel1: 'C', categoryNivel2: 'S',
+        categoryNivel3: 'N', assignmentGroup: 'G', requesterInstitution: '',
+        criadoEm: '01-01-2026 10:00:00', criadoEmMs: 1,
+        atualizadoEm: '01-01-2026 10:00:00', atualizadoEmMs: 1,
+        flow: null,
+      },
+    ]);
+
+    expect(service.getTickets('equipe-a').length).toBe(1);
+
+    service.clearCache();
+
+    expect(service.getTickets('equipe-a').length).toBe(0);
+    expect(sessionStorage.getItem('open-finance-ticket-list-v3')).toBeNull();
+  });
+
+  it('mapTicketListPayload retorna array vazio para payload invalido', () => {
+    expect(service.mapTicketListPayload(null)).toEqual([]);
+    expect(service.mapTicketListPayload('string')).toEqual([]);
+    expect(service.mapTicketListPayload(undefined)).toEqual([]);
+    expect(service.mapTicketListPayload(42)).toEqual([]);
+  });
+
+  it('mapKnownTicketListPayload retorna array vazio para payload invalido', () => {
+    expect(service.mapKnownTicketListPayload(null)).toEqual([]);
+    expect(service.mapKnownTicketListPayload({})).toEqual([]);
+  });
 });

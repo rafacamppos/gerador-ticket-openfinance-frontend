@@ -109,7 +109,7 @@ export class TicketOwnerPageComponent implements OnInit, OnDestroy {
       const tickets = await this.ticketListFacade.loadTickets({
         apiOwnerSlug: ownerSlug,
         cacheOwnerSlug: ownerSlug,
-        existingTickets: this.ticketsState(),
+        existingTickets: () => this.ticketsState(),
       });
 
       if (!this.isCurrentLoad(ownerSlug, loadVersion)) {

@@ -1,6 +1,7 @@
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { convertToParamMap, provideRouter } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
+import { of } from 'rxjs';
 
 import { TicketOwnerPageComponent } from './ticket-owner-page.component';
 import { OpenFinanceApiService } from '../services/open-finance-api.service';
@@ -86,6 +87,7 @@ describe('TicketOwnerPageComponent', () => {
         {
           provide: ActivatedRoute,
           useValue: {
+            paramMap: of(convertToParamMap({ ownerSlug: 'consentimentos-outbound' })),
             snapshot: {
               paramMap: convertToParamMap({
                 ownerSlug: 'consentimentos-outbound',
@@ -199,8 +201,9 @@ describe('TicketOwnerPageComponent', () => {
     tick();
     fixture.detectChanges();
 
-    expect(component.tickets[0].id).toBe('1');
+    // Ticket '9' tem data 2026-03-22 (mais recente) e fica na primeira posição após ordenação
+    expect(component.tickets[0].id).toBe('9');
     expect(component.tickets.length).toBe(3);
-    expect(component.tickets.some((ticket: any) => ticket.id === '9')).toBeTrue();
+    expect(component.tickets.some((ticket: any) => ticket.id === '1')).toBeTrue();
   }));
 });
