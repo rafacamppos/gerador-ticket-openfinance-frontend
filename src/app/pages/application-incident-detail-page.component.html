@@ -46,6 +46,10 @@
           </div>
         </header>
 
+        @if (ticketCreateSuccess) {
+          <div class="detail-card__state detail-card__state--success">{{ ticketCreateSuccess }}</div>
+        }
+
         <section class="detail-card__toolbar">
           <div class="detail-card__toolbar-summary">
             <div><strong>Status do incidente:</strong> {{ formatValue(incident.incident_status_label) }}</div>
@@ -56,8 +60,14 @@
             <button
               type="button"
               class="detail-card__actionButton detail-card__actionButton--compact detail-card__actionButton--compactStatus"
+              [class.detail-card__assignButton--muted]="!canCreateTicket()"
               (click)="openCreateTicketModal()"
-              [disabled]="hasRelatedTicket()"
+              [disabled]="!canCreateTicket()"
+              [title]="
+                hasRelatedTicket()
+                  ? 'O incidente já possui ticket vinculado.'
+                  : 'Atribua o incidente a você para criar o ticket.'
+              "
             >
               Criar ticket
             </button>
@@ -94,7 +104,7 @@
             <h3>Dados principais</h3>
             <div class="detail-card__grid">
               <div><strong>Equipe:</strong> {{ formatValue(incident.team_name) }}</div>
-              <div><strong>Data do erro:</strong> {{ formatValue(incident.occurred_at) }}</div>
+              <div><strong>Data do erro:</strong> {{ formatDateTime(incident.occurred_at) }}</div>
               <div><strong>X-FAPI-Interaction-Id:</strong> {{ formatValue(incident.x_fapi_interaction_id) }}</div>
               <div><strong>Authorization Server:</strong> {{ formatValue(incident.authorization_server) }}</div>
               <div><strong>Client Id:</strong> {{ formatValue(incident.client_id) }}</div>
@@ -114,8 +124,8 @@
               <div><strong>Ticket relacionado:</strong> {{ formatValue(incident.related_ticket_id) }}</div>
               <div><strong>Usuário atribuído:</strong> {{ formatValue(incident.assigned_to_name) }}</div>
               <div><strong>E-mail atribuído:</strong> {{ formatValue(incident.assigned_to_email) }}</div>
-              <div><strong>Criado em:</strong> {{ formatValue(incident.created_at) }}</div>
-              <div><strong>Atualizado em:</strong> {{ formatValue(incident.updated_at) }}</div>
+              <div><strong>Criado em:</strong> {{ formatDateTime(incident.created_at) }}</div>
+              <div><strong>Atualizado em:</strong> {{ formatDateTime(incident.updated_at) }}</div>
             </div>
           </section>
 
@@ -144,9 +154,6 @@
           </section>
         </div>
 
-        @if (ticketCreateSuccess) {
-          <div class="detail-card__state detail-card__state--success">{{ ticketCreateSuccess }}</div>
-        }
       }
     </article>
   </div>

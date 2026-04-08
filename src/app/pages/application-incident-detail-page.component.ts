@@ -111,7 +111,7 @@ export class ApplicationIncidentDetailPageComponent implements OnInit {
   }
 
   protected async openCreateTicketModal(): Promise<void> {
-    if (!this.incident || this.hasRelatedTicket()) {
+    if (!this.incident || !this.canCreateTicket()) {
       return;
     }
 
@@ -213,6 +213,30 @@ export class ApplicationIncidentDetailPageComponent implements OnInit {
 
   protected hasRelatedTicket(): boolean {
     return Boolean(this.incident?.related_ticket_id);
+  }
+
+  protected canCreateTicket(): boolean {
+    return this.isAssignedToMe() && !this.hasRelatedTicket();
+  }
+
+  protected formatDateTime(value: unknown): string {
+    if (!value) {
+      return 'Sem data';
+    }
+
+    const date = new Date(String(value));
+    if (Number.isNaN(date.getTime())) {
+      return String(value);
+    }
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
   }
 
   private async resolveTicketStatusIdByName(statusName: string): Promise<string> {

@@ -202,6 +202,11 @@ export class ApplicationIncidentsPageComponent implements OnInit, OnDestroy {
     return CANAL_JORNADA_LABELS[value];
   }
 
+  private toDatetimeLocalValue(date = new Date()): string {
+    const timezoneOffsetMs = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - timezoneOffsetMs).toISOString().slice(0, 16);
+  }
+
   private buildEmptyIncidentForm() {
     return {
       targetOwnerSlug: '',
@@ -216,7 +221,7 @@ export class ApplicationIncidentsPageComponent implements OnInit, OnDestroy {
       canal_jornada: 'NA' as const,
       payload_request: '{\n  \n}',
       payload_response: '{\n  \n}',
-      occurred_at: new Date().toISOString().slice(0, 16),
+      occurred_at: this.toDatetimeLocalValue(),
       http_status_code: '500',
     };
   }

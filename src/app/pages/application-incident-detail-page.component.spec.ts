@@ -296,7 +296,16 @@ describe('ApplicationIncidentDetailPageComponent', () => {
   }));
 
   it('openCreateTicketModal reinicia o form e limpa erros anteriores', fakeAsync(() => {
-    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
+    authSpy.getUser.and.returnValue({
+      id: '11',
+      name: 'Analista',
+      email: 'analista@santander.com.br',
+      profile: 'user',
+      team: null,
+    });
+    apiSpy.getApplicationIncidentById.and.resolveTo(
+      makeIncident({ assigned_to_user_id: '11', assigned_to_email: 'analista@santander.com.br' })
+    );
     apiSpy.getTicketPreview.and.resolveTo(makeTicketPreview());
 
     const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
@@ -327,6 +336,13 @@ describe('ApplicationIncidentDetailPageComponent', () => {
 
 
   it('desabilita criacao de ticket quando incidente ja possui ticket relacionado', fakeAsync(() => {
+    authSpy.getUser.and.returnValue({
+      id: '11',
+      name: 'Analista',
+      email: 'analista@santander.com.br',
+      profile: 'user',
+      team: null,
+    });
     apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident({ related_ticket_id: '777' }));
 
     const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
@@ -339,11 +355,96 @@ describe('ApplicationIncidentDetailPageComponent', () => {
     const button = fixture.nativeElement.querySelector('.detail-card__toolbar-actions button');
 
     expect(component.hasRelatedTicket()).toBeTrue();
+    expect(component.canCreateTicket()).toBeFalse();
     expect(button.disabled).toBeTrue();
   }));
 
+  it('desabilita criacao de ticket quando incidente nao esta atribuido a mim', fakeAsync(() => {
+    authSpy.getUser.and.returnValue({
+      id: '11',
+      name: 'Analista',
+      email: 'analista@santander.com.br',
+      profile: 'user',
+      team: null,
+    });
+    apiSpy.getApplicationIncidentById.and.resolveTo(
+      makeIncident({ assigned_to_user_id: '22', assigned_to_email: 'outro@santander.com.br' })
+    );
+
+    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
+    const component = fixture.componentInstance as any;
+
+    fixture.detectChanges();
+    tick();
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector('.detail-card__toolbar-actions button');
+
+    expect(component.isAssignedToMe()).toBeFalse();
+    expect(component.canCreateTicket()).toBeFalse();
+    expect(button.disabled).toBeTrue();
+  }));
+
+  it('habilita criacao de ticket quando incidente esta atribuido a mim e sem ticket relacionado', fakeAsync(() => {
+    authSpy.getUser.and.returnValue({
+      id: '11',
+      name: 'Analista',
+      email: 'analista@santander.com.br',
+      profile: 'user',
+      team: null,
+    });
+    apiSpy.getApplicationIncidentById.and.resolveTo(
+      makeIncident({ assigned_to_user_id: '11', assigned_to_email: 'analista@santander.com.br' })
+    );
+
+    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
+    const component = fixture.componentInstance as any;
+
+    fixture.detectChanges();
+    tick();
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector('.detail-card__toolbar-actions button');
+
+    expect(component.isAssignedToMe()).toBeTrue();
+    expect(component.canCreateTicket()).toBeTrue();
+    expect(button.disabled).toBeFalse();
+  }));
+
   it('nao abre modal de criacao quando incidente ja possui ticket relacionado', fakeAsync(() => {
+    authSpy.getUser.and.returnValue({
+      id: '11',
+      name: 'Analista',
+      email: 'analista@santander.com.br',
+      profile: 'user',
+      team: null,
+    });
     apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident({ related_ticket_id: '777' }));
+
+    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
+    const component = fixture.componentInstance as any;
+
+    fixture.detectChanges();
+    tick();
+    fixture.detectChanges();
+
+    component.openCreateTicketModal();
+    tick();
+
+    expect(component.isCreateTicketModalVisible).toBeFalse();
+  }));
+
+  it('nao abre modal de criacao quando incidente nao esta atribuido a mim', fakeAsync(() => {
+    authSpy.getUser.and.returnValue({
+      id: '11',
+      name: 'Analista',
+      email: 'analista@santander.com.br',
+      profile: 'user',
+      team: null,
+    });
+    apiSpy.getApplicationIncidentById.and.resolveTo(
+      makeIncident({ assigned_to_user_id: '22', assigned_to_email: 'outro@santander.com.br' })
+    );
 
     const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
     const component = fixture.componentInstance as any;
@@ -399,5 +500,18 @@ describe('ApplicationIncidentDetailPageComponent', () => {
     expect(component.formatValue(null)).toBe('Nao informado');
     expect(component.formatValue(undefined)).toBe('Nao informado');
     expect(component.formatValue('')).toBe('Nao informado');
+  }));
+
+  it('formatDateTime formata timestamp ISO em horario local legivel', fakeAsync(() => {
+    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
+
+    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
+    const component = fixture.componentInstance as any;
+
+    fixture.detectChanges();
+    tick();
+
+    const result = component.formatDateTime('2026-04-01T10:05:00.000Z');
+    expect(result).toMatch(/^\d{2}-\d{2}-\d{4} \d{2}:\d{2}:\d{2}$/);
   }));
 });
