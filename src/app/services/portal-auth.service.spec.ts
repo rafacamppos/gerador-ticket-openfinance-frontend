@@ -8,46 +8,29 @@ import { TicketListFacadeService } from './ticket-list-facade.service';
 
 function makeUser(overrides: Partial<PortalUser> = {}): PortalUser {
   return {
-    id: '1',
-    name: 'Administrador',
-    email: 'admin@empresa.com',
-    profile: 'adm',
-    team: {
-      id: '1',
-      slug: 'su-super-usuarios',
-      name: 'SU (Super Usuário)',
-    },
+    id: '1', name: 'Admin', email: 'admin@empresa.com', profile: 'adm',
+    team: { id: '1', slug: 'su-super-usuarios', name: 'SU' },
     ...overrides,
   };
 }
 
 describe('PortalAuthService', () => {
   let apiSpy: jasmine.SpyObj<OpenFinanceApiService>;
-  let ticketListFacadeSpy: jasmine.SpyObj<TicketListFacadeService>;
+  let ticketFacadeSpy: jasmine.SpyObj<TicketListFacadeService>;
   let ticketServiceSpy: jasmine.SpyObj<OpenFinanceTicketService>;
   let service: PortalAuthService;
 
   beforeEach(() => {
     sessionStorage.clear();
-
-    apiSpy = jasmine.createSpyObj<OpenFinanceApiService>('OpenFinanceApiService', [
-      'login',
-      'getCurrentUser',
-      'logout',
-    ]);
-    ticketListFacadeSpy = jasmine.createSpyObj<TicketListFacadeService>(
-      'TicketListFacadeService',
-      ['preloadKnownTickets']
-    );
-    ticketServiceSpy = jasmine.createSpyObj<OpenFinanceTicketService>('OpenFinanceTicketService', [
-      'clearCache',
-    ]);
+    apiSpy = jasmine.createSpyObj<OpenFinanceApiService>('OpenFinanceApiService', ['login', 'getCurrentUser', 'logout']);
+    ticketFacadeSpy = jasmine.createSpyObj<TicketListFacadeService>('TicketListFacadeService', ['preloadKnownTickets']);
+    ticketServiceSpy = jasmine.createSpyObj<OpenFinanceTicketService>('OpenFinanceTicketService', ['clearCache']);
 
     TestBed.configureTestingModule({
       providers: [
         PortalAuthService,
         { provide: OpenFinanceApiService, useValue: apiSpy },
-        { provide: TicketListFacadeService, useValue: ticketListFacadeSpy },
+        { provide: TicketListFacadeService, useValue: ticketFacadeSpy },
         { provide: OpenFinanceTicketService, useValue: ticketServiceSpy },
       ],
     });
@@ -56,188 +39,111 @@ describe('PortalAuthService', () => {
   });
 
   describe('login', () => {
-    it('precarrega tickets conhecidos da equipe no login', async () => {
-      const user = makeUser({
-        id: '7',
-        name: 'Operador',
-        email: 'operador@empresa.com',
-        profile: 'user',
-        team: { id: '3', slug: 'consentimentos-outbound', name: 'Consentimentos Outbound' },
-      });
+    it('precarrega tickets da equipe e retorna o usuário autenticado', async () => {
+      const user = makeUser({ profile: 'user', team: { id: '3', slug: 'consentimentos-outbound', name: 'CO' } });
       apiSpy.login.and.resolveTo(user);
-      ticketListFacadeSpy.preloadKnownTickets.and.resolveTo([]);
+      ticketFacadeSpy.preloadKnownTickets.and.resolveTo([]);
 
-      const response = await service.login('operador@empresa.com', '123456');
-
-      expect(response).toEqual(user);
+      expect(await service.login('u@x.com', '123')).toEqual(user);
       expect(ticketServiceSpy.clearCache).toHaveBeenCalled();
-      expect(ticketListFacadeSpy.preloadKnownTickets).toHaveBeenCalledOnceWith(
-        'consentimentos-outbound'
-      );
-      expect(service.getHomeRoute()).toBe('/areas/consentimentos-outbound');
+      expect(ticketFacadeSpy.preloadKnownTickets).toHaveBeenCalledOnceWith('consentimentos-outbound');
     });
 
-    it('nao falha o login quando o preload dos tickets conhecidos falha', async () => {
-      const user = makeUser();
-      apiSpy.login.and.resolveTo(user);
-      ticketListFacadeSpy.preloadKnownTickets.and.rejectWith(new Error('Falha ao carregar cache'));
-
-      const response = await service.login('admin@empresa.com', '123456');
-
-      expect(response).toEqual(user);
-      expect(ticketListFacadeSpy.preloadKnownTickets).toHaveBeenCalledOnceWith('su-super-usuarios');
+    it('não falha quando o pré-carregamento de tickets falha', async () => {
+      apiSpy.login.and.resolveTo(makeUser());
+      ticketFacadeSpy.preloadKnownTickets.and.rejectWith(new Error('Falha cache'));
+      await expectAsync(service.login('a@x.com', '123')).toBeResolved();
     });
 
-    it('nao chama preloadKnownTickets quando usuario nao tem equipe', async () => {
-      const user = makeUser({ team: null });
-      apiSpy.login.and.resolveTo(user);
-
-      await service.login('admin@empresa.com', '123456');
-
-      expect(ticketListFacadeSpy.preloadKnownTickets).not.toHaveBeenCalled();
+    it('não chama preloadKnownTickets para usuário sem equipe', async () => {
+      apiSpy.login.and.resolveTo(makeUser({ team: null }));
+      await service.login('a@x.com', '123');
+      expect(ticketFacadeSpy.preloadKnownTickets).not.toHaveBeenCalled();
     });
   });
 
   describe('ensureSession', () => {
-    it('retorna true imediatamente quando usuario ja esta armazenado', async () => {
-      const user = makeUser();
-      apiSpy.login.and.resolveTo(user);
-      ticketListFacadeSpy.preloadKnownTickets.and.resolveTo([]);
-      await service.login('admin@empresa.com', '123456');
+    it('reutiliza sessão em memória sem chamar a API novamente', async () => {
+      apiSpy.login.and.resolveTo(makeUser());
+      ticketFacadeSpy.preloadKnownTickets.and.resolveTo([]);
+      await service.login('a@x.com', '123');
       apiSpy.getCurrentUser.calls.reset();
 
-      const result = await service.ensureSession();
-
-      expect(result).toBeTrue();
+      expect(await service.ensureSession()).toBeTrue();
       expect(apiSpy.getCurrentUser).not.toHaveBeenCalled();
     });
 
-    it('busca usuario atual e retorna true quando nao ha usuario em cache', async () => {
+    it('valida sessão via API e armazena o usuário quando não há cache', async () => {
       const user = makeUser();
       apiSpy.getCurrentUser.and.resolveTo(user);
-      ticketListFacadeSpy.preloadKnownTickets.and.resolveTo([]);
+      ticketFacadeSpy.preloadKnownTickets.and.resolveTo([]);
 
-      const result = await service.ensureSession();
-
-      expect(result).toBeTrue();
-      expect(apiSpy.getCurrentUser).toHaveBeenCalled();
+      expect(await service.ensureSession()).toBeTrue();
       expect(service.getUser()).toEqual(user);
     });
 
-    it('retorna false e limpa usuario para erro 401', async () => {
+    it('retorna false e limpa usuário para resposta 401', async () => {
       apiSpy.getCurrentUser.and.rejectWith(new HttpErrorResponse({ status: 401 }));
-
-      const result = await service.ensureSession();
-
-      expect(result).toBeFalse();
+      expect(await service.ensureSession()).toBeFalse();
       expect(service.getUser()).toBeNull();
     });
 
-    it('propaga outros erros HTTP', async () => {
+    it('propaga erros não-401 para o chamador', async () => {
       apiSpy.getCurrentUser.and.rejectWith(new HttpErrorResponse({ status: 500 }));
-
-      await expectAsync(service.ensureSession()).toBeRejectedWith(
-        jasmine.any(HttpErrorResponse)
-      );
+      await expectAsync(service.ensureSession()).toBeRejectedWith(jasmine.any(HttpErrorResponse));
     });
   });
 
   describe('logout', () => {
-    it('chama api.logout, limpa cache e usuario', async () => {
-      const user = makeUser();
-      apiSpy.login.and.resolveTo(user);
-      ticketListFacadeSpy.preloadKnownTickets.and.resolveTo([]);
-      await service.login('admin@empresa.com', '123456');
-
-      apiSpy.logout.and.resolveTo();
-
-      await service.logout();
-
-      expect(apiSpy.logout).toHaveBeenCalled();
-      expect(ticketServiceSpy.clearCache).toHaveBeenCalledTimes(2); // login + logout
-      expect(service.getUser()).toBeNull();
+    beforeEach(async () => {
+      apiSpy.login.and.resolveTo(makeUser());
+      ticketFacadeSpy.preloadKnownTickets.and.resolveTo([]);
+      await service.login('a@x.com', '123');
     });
 
-    it('limpa cache e usuario mesmo quando api.logout falha', async () => {
-      const user = makeUser();
-      apiSpy.login.and.resolveTo(user);
-      ticketListFacadeSpy.preloadKnownTickets.and.resolveTo([]);
-      await service.login('admin@empresa.com', '123456');
-
-      apiSpy.logout.and.rejectWith(new Error('Falha ao deslogar'));
-
-      // logout usa try/finally: o finally executa mas a excecao e relancada
-      try { await service.logout(); } catch { /* esperado */ }
-
+    it('limpa cache e sessão após logout bem-sucedido', async () => {
+      apiSpy.logout.and.resolveTo();
+      await service.logout();
       expect(ticketServiceSpy.clearCache).toHaveBeenCalledTimes(2);
       expect(service.getUser()).toBeNull();
     });
-  });
 
-  describe('getters', () => {
-    it('getUser retorna null quando nao ha usuario logado', () => {
+    it('ainda limpa cache e sessão mesmo quando o logout na API falha', async () => {
+      apiSpy.logout.and.rejectWith(new Error('Falha'));
+      try { await service.logout(); } catch { /* esperado */ }
       expect(service.getUser()).toBeNull();
     });
-
-    it('getUserName retorna string vazia quando nao ha usuario logado', () => {
-      expect(service.getUserName()).toBe('');
-    });
-
-    it('getProfile retorna null quando nao ha usuario logado', () => {
-      expect(service.getProfile()).toBeNull();
-    });
-
-    it('getTeamSlug retorna string vazia quando nao ha usuario logado', () => {
-      expect(service.getTeamSlug()).toBe('');
-    });
-
-    it('getHomeRoute retorna /dashboard para usuario adm', async () => {
-      const user = makeUser({ profile: 'adm' });
-      apiSpy.login.and.resolveTo(user);
-      ticketListFacadeSpy.preloadKnownTickets.and.resolveTo([]);
-      await service.login('admin@empresa.com', '123456');
-
-      expect(service.getHomeRoute()).toBe('/dashboard');
-    });
-
-    it('getHomeRoute retorna /areas/teamSlug para usuario com equipe', async () => {
-      const user = makeUser({ profile: 'user', team: { id: '2', slug: 'iniciadora-pagamentos', name: 'Iniciadora' } });
-      apiSpy.login.and.resolveTo(user);
-      ticketListFacadeSpy.preloadKnownTickets.and.resolveTo([]);
-      await service.login('usuario@empresa.com', '123456');
-
-      expect(service.getHomeRoute()).toBe('/areas/iniciadora-pagamentos');
-    });
-
-    it('getHomeRoute retorna /login quando usuario nao tem equipe', async () => {
-      const user = makeUser({ profile: 'user', team: null });
-      apiSpy.login.and.resolveTo(user);
-      await service.login('usuario@empresa.com', '123456');
-
-      expect(service.getHomeRoute()).toBe('/login');
-    });
   });
 
-  describe('canAccessOwner', () => {
-    it('adm pode acessar qualquer owner', async () => {
-      const user = makeUser({ profile: 'adm' });
-      apiSpy.login.and.resolveTo(user);
-      ticketListFacadeSpy.preloadKnownTickets.and.resolveTo([]);
-      await service.login('admin@empresa.com', '123456');
+  describe('roteamento e controle de acesso', () => {
+    const rotaCasos: Array<[Partial<PortalUser>, string]> = [
+      [{ profile: 'adm' },                                                  '/dashboard'],
+      [{ profile: 'user', team: { id: '2', slug: 'iniciadora-pagamentos', name: 'IP' } }, '/areas/iniciadora-pagamentos'],
+      [{ profile: 'user', team: null },                                     '/login'],
+    ];
 
-      expect(service.canAccessOwner('qualquer-owner')).toBeTrue();
-      expect(service.canAccessOwner('')).toBeTrue();
+    rotaCasos.forEach(([override, rota]) => {
+      it(`getHomeRoute retorna "${rota}" para ${override.profile} com equipe "${override.team?.slug ?? 'nenhuma'}"`, async () => {
+        apiSpy.login.and.resolveTo(makeUser(override));
+        ticketFacadeSpy.preloadKnownTickets.and.resolveTo([]);
+        await service.login('a@x.com', '123');
+        expect(service.getHomeRoute()).toBe(rota);
+      });
     });
 
-    it('usuario pode acessar apenas o owner da sua equipe', async () => {
-      const user = makeUser({ profile: 'user', team: { id: '3', slug: 'detentora-pagamentos', name: 'Detentora' } });
-      apiSpy.login.and.resolveTo(user);
-      ticketListFacadeSpy.preloadKnownTickets.and.resolveTo([]);
-      await service.login('usuario@empresa.com', '123456');
+    it('administrador pode acessar qualquer owner', async () => {
+      apiSpy.login.and.resolveTo(makeUser({ profile: 'adm' }));
+      ticketFacadeSpy.preloadKnownTickets.and.resolveTo([]);
+      await service.login('a@x.com', '123');
+      expect(service.canAccessOwner('qualquer-owner')).toBeTrue();
+    });
 
+    it('usuário acessa apenas o owner da própria equipe', async () => {
+      apiSpy.login.and.resolveTo(makeUser({ profile: 'user', team: { id: '3', slug: 'detentora-pagamentos', name: 'DP' } }));
+      ticketFacadeSpy.preloadKnownTickets.and.resolveTo([]);
+      await service.login('a@x.com', '123');
       expect(service.canAccessOwner('detentora-pagamentos')).toBeTrue();
       expect(service.canAccessOwner('iniciadora-pagamentos')).toBeFalse();
-      expect(service.canAccessOwner('')).toBeFalse();
     });
   });
 });

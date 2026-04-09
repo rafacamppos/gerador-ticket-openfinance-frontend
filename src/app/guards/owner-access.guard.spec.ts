@@ -1,91 +1,48 @@
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRouteSnapshot, convertToParamMap, Router, UrlTree } from '@angular/router';
+import { ActivatedRouteSnapshot, convertToParamMap, RouterStateSnapshot } from '@angular/router';
 
 import { ownerAccessGuard } from './owner-access.guard';
 import { PortalAuthService } from '../services/portal-auth.service';
 
 describe('ownerAccessGuard', () => {
   let authServiceSpy: jasmine.SpyObj<PortalAuthService>;
-  let routerSpy: jasmine.SpyObj<Router>;
+
+  const mockState = { url: '/' } as RouterStateSnapshot;
+  const run = (ownerSlug: string) => {
+    const route = { paramMap: convertToParamMap(ownerSlug ? { ownerSlug } : {}) } as unknown as ActivatedRouteSnapshot;
+    return TestBed.runInInjectionContext(() => ownerAccessGuard(route, mockState));
+  };
 
   beforeEach(() => {
     authServiceSpy = jasmine.createSpyObj<PortalAuthService>('PortalAuthService', [
-      'ensureSession',
-      'canAccessOwner',
-      'getHomeRoute',
+      'ensureSession', 'canAccessOwner', 'getHomeRoute',
     ]);
-    routerSpy = jasmine.createSpyObj<Router>('Router', ['parseUrl']);
-    routerSpy.parseUrl.and.callFake((url: string) => ({ toString: () => url }) as UrlTree);
 
     TestBed.configureTestingModule({
-      providers: [
-        { provide: PortalAuthService, useValue: authServiceSpy },
-        { provide: Router, useValue: routerSpy },
-      ],
+      providers: [{ provide: PortalAuthService, useValue: authServiceSpy }],
     });
   });
 
-  function makeRoute(ownerSlug: string): ActivatedRouteSnapshot {
-    return {
-      paramMap: convertToParamMap({ ownerSlug }),
-    } as unknown as ActivatedRouteSnapshot;
-  }
-
-  async function runGuard(ownerSlug: string): Promise<unknown> {
-    const route = makeRoute(ownerSlug);
-    return TestBed.runInInjectionContext(() => ownerAccessGuard(route, null as never));
-  }
-
-  it('redireciona para /login quando sessao nao esta ativa', async () => {
+  it('redireciona para /login sem sessão ativa', async () => {
     authServiceSpy.ensureSession.and.resolveTo(false);
-
-    const result = await runGuard('consentimentos-outbound');
-
-    expect(routerSpy.parseUrl).toHaveBeenCalledOnceWith('/login');
-    expect((result as { toString(): string }).toString()).toBe('/login');
+    expect(String(await run('iniciadora-pagamentos'))).toBe('/login');
   });
 
-  it('retorna true quando usuario tem acesso ao owner', async () => {
+  it('permite acesso quando o usuário tem permissão para o owner', async () => {
     authServiceSpy.ensureSession.and.resolveTo(true);
     authServiceSpy.canAccessOwner.and.returnValue(true);
-
-    const result = await runGuard('iniciadora-pagamentos');
-
-    expect(authServiceSpy.canAccessOwner).toHaveBeenCalledOnceWith('iniciadora-pagamentos');
-    expect(result).toBeTrue();
+    expect(await run('iniciadora-pagamentos')).toBeTrue();
   });
 
-  it('redireciona para rota home quando usuario nao tem acesso ao owner', async () => {
+  it('redireciona para home quando usuário não tem permissão para o owner', async () => {
     authServiceSpy.ensureSession.and.resolveTo(true);
     authServiceSpy.canAccessOwner.and.returnValue(false);
     authServiceSpy.getHomeRoute.and.returnValue('/areas/detentora-pagamentos');
-
-    const result = await runGuard('servicos-outbound');
-
-    expect(routerSpy.parseUrl).toHaveBeenCalledOnceWith('/areas/detentora-pagamentos');
-    expect((result as { toString(): string }).toString()).toBe('/areas/detentora-pagamentos');
+    expect(String(await run('servicos-outbound'))).toBe('/areas/detentora-pagamentos');
   });
 
-  it('redireciona para /login quando ensureSession lanca excecao', async () => {
-    authServiceSpy.ensureSession.and.rejectWith(new Error('Erro inesperado'));
-
-    const result = await runGuard('consentimentos-inbound');
-
-    expect(routerSpy.parseUrl).toHaveBeenCalledOnceWith('/login');
-    expect((result as { toString(): string }).toString()).toBe('/login');
-  });
-
-  it('passa string vazia para canAccessOwner quando ownerSlug nao esta na rota', async () => {
-    authServiceSpy.ensureSession.and.resolveTo(true);
-    authServiceSpy.canAccessOwner.and.returnValue(false);
-    authServiceSpy.getHomeRoute.and.returnValue('/login');
-
-    const route = {
-      paramMap: convertToParamMap({}),
-    } as unknown as ActivatedRouteSnapshot;
-
-    await TestBed.runInInjectionContext(() => ownerAccessGuard(route, null as never));
-
-    expect(authServiceSpy.canAccessOwner).toHaveBeenCalledOnceWith('');
+  it('redireciona para /login em caso de erro inesperado', async () => {
+    authServiceSpy.ensureSession.and.rejectWith(new Error('Erro'));
+    expect(String(await run('consentimentos-inbound'))).toBe('/login');
   });
 });

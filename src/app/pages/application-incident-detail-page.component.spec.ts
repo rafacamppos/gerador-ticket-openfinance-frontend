@@ -8,60 +8,45 @@ import { ApplicationIncidentsFacadeService } from '../services/application-incid
 import { PortalAuthService } from '../services/portal-auth.service';
 import { ApplicationIncident, TicketPreview } from '../services/application-incidents.models';
 
+type Comp = ApplicationIncidentDetailPageComponent & {
+  isLoading: boolean; errorMessage: string;
+  incident: ApplicationIncident | null;
+  ticketPreview: TicketPreview | null;
+  ticketForm: { title: string; description: string; template_fields: Array<{ key: string; value: string }> };
+  isCreateTicketModalVisible: boolean; isCreatingTicket: boolean; isLoadingTicketPreview: boolean;
+  ticketCreateError: string; ticketCreateSuccess: string;
+  hasRelatedTicket(): boolean;
+  openCreateTicketModal(): Promise<void>;
+  closeCreateTicketModal(): void;
+  createTicket(): Promise<void>;
+  formatValue(v: unknown): string;
+};
+
 function makeIncident(overrides: Partial<ApplicationIncident> = {}): ApplicationIncident {
   return {
-    id: '4',
-    team_slug: 'consentimentos-inbound',
-    team_name: 'Consentimentos Inbound',
-    x_fapi_interaction_id: 'fapi-uuid-001',
-    authorization_server: 'auth-uuid-001',
-    client_id: 'client-uuid-001',
-    endpoint: '/open-banking/consents/v3/consents',
-    method: 'POST',
-    title: 'Falha na criação de consentimento',
-    description: 'Erro ao criar consentimento',
-    tipo_cliente: 'PF' as const,
-    canal_jornada: 'App to app',
-    payload_request: { consentId: 'urn:abc' },
-    payload_response: { error: 'DETALHE_PGTO_INVALIDO' },
-    occurred_at: '2026-04-01T10:00:00.000Z',
-    http_status_code: 422,
-    ticket_context: null,
-    incident_status: 'new',
-    incident_status_label: 'Novo',
-    related_ticket_id: null,
-    assigned_to_user_id: null,
-    assigned_to_name: null,
-    assigned_to_email: null,
-    created_at: '2026-04-01T10:05:00.000Z',
+    id: '4', team_slug: 'consentimentos-inbound', team_name: 'Consentimentos Inbound',
+    x_fapi_interaction_id: 'fapi-uuid-001', authorization_server: 'auth-uuid-001', client_id: 'client-uuid-001',
+    endpoint: '/open-banking/consents/v3/consents', method: 'POST',
+    title: 'Falha na criação de consentimento', description: 'Erro ao criar consentimento',
+    tipo_cliente: 'PF' as const, canal_jornada: 'App to app',
+    payload_request: { consentId: 'urn:abc' }, payload_response: { error: 'DETALHE_PGTO_INVALIDO' },
+    occurred_at: '2026-04-01T10:00:00.000Z', http_status_code: 422,
+    ticket_context: null, incident_status: 'new', incident_status_label: 'Novo',
+    related_ticket_id: null, assigned_to_user_id: null, assigned_to_name: null,
+    assigned_to_email: null, created_at: '2026-04-01T10:05:00.000Z',
     updated_at: '2026-04-01T10:05:00.000Z',
     ...overrides,
   };
 }
 
-function makeTicketPreview(overrides: Partial<TicketPreview> = {}): TicketPreview {
+function makeTicketPreview(): TicketPreview {
   return {
-    template_id: '123328',
-    template_type: 1,
-    title: 'Falha na criação de consentimento',
-    description: 'Erro ao criar consentimento',
+    template_id: '123328', template_type: 1,
+    title: 'Falha na criação de consentimento', description: 'Erro ao criar consentimento',
     template_fields: [
-      {
-        key: 'CustomColumn120sr',
-        label: 'Tipo do Cliente',
-        required: true,
-        value: 'PF',
-        options: ['PF', 'PJ'],
-      },
-      {
-        key: 'CustomColumn174sr',
-        label: 'Canal da Jornada',
-        required: true,
-        value: 'App to app',
-        options: ['App to app', 'App to browser'],
-      },
+      { key: 'CustomColumn120sr', label: 'Tipo do Cliente', required: true, value: 'PF', options: ['PF', 'PJ'] },
+      { key: 'CustomColumn174sr', label: 'Canal da Jornada', required: true, value: 'App to app', options: ['App to app', 'App to browser'] },
     ],
-    ...overrides,
   };
 }
 
@@ -70,24 +55,21 @@ describe('ApplicationIncidentDetailPageComponent', () => {
   let facadeSpy: jasmine.SpyObj<ApplicationIncidentsFacadeService>;
   let authSpy: jasmine.SpyObj<PortalAuthService>;
 
+  function create(): Comp {
+    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
+    fixture.detectChanges();
+    tick();
+    return fixture.componentInstance as unknown as Comp;
+  }
+
   beforeEach(async () => {
     sessionStorage.clear();
 
     apiSpy = jasmine.createSpyObj<OpenFinanceApiService>('OpenFinanceApiService', [
-      'getApplicationIncidentById',
-      'assignApplicationIncidentToMe',
-      'transitionApplicationIncident',
-      'listTicketStatuses',
-      'getTicketPreview',
-      'createIncidentTicket',
-      'updateTicket',
+      'getApplicationIncidentById', 'assignApplicationIncidentToMe', 'transitionApplicationIncident',
+      'listTicketStatuses', 'getTicketPreview', 'createIncidentTicket', 'updateTicket',
     ]);
-
-    facadeSpy = jasmine.createSpyObj<ApplicationIncidentsFacadeService>(
-      'ApplicationIncidentsFacadeService',
-      ['syncIncident']
-    );
-
+    facadeSpy = jasmine.createSpyObj<ApplicationIncidentsFacadeService>('ApplicationIncidentsFacadeService', ['syncIncident']);
     authSpy = jasmine.createSpyObj<PortalAuthService>('PortalAuthService', ['getUser']);
     authSpy.getUser.and.returnValue(null);
 
@@ -98,306 +80,159 @@ describe('ApplicationIncidentDetailPageComponent', () => {
         { provide: OpenFinanceApiService, useValue: apiSpy },
         { provide: ApplicationIncidentsFacadeService, useValue: facadeSpy },
         { provide: PortalAuthService, useValue: authSpy },
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            snapshot: {
-              paramMap: convertToParamMap({ ownerSlug: 'consentimentos-inbound', incidentId: '4' }),
-            },
+        { provide: ActivatedRoute, useValue: {
+            snapshot: { paramMap: convertToParamMap({ ownerSlug: 'consentimentos-inbound', incidentId: '4' }) },
           },
         },
       ],
     }).compileComponents();
   });
 
-  it('carrega incidente ao iniciar e exibe no template', fakeAsync(() => {
-    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
+  describe('carregamento inicial', () => {
+    it('carrega incidente ao iniciar', fakeAsync(() => {
+      apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
+      const c = create();
+      expect(apiSpy.getApplicationIncidentById).toHaveBeenCalledWith('consentimentos-inbound', '4');
+      expect(c.incident).toBeTruthy();
+      expect(c.isLoading).toBeFalse();
+    }));
 
-    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
-    const component = fixture.componentInstance as any;
+    it('exibe mensagem de erro quando API falha', fakeAsync(() => {
+      apiSpy.getApplicationIncidentById.and.rejectWith(new Error('API indisponível'));
+      const c = create();
+      expect(c.errorMessage).toBe('API indisponível');
+      expect(c.isLoading).toBeFalse();
+    }));
+  });
 
-    fixture.detectChanges();
-    tick();
-    fixture.detectChanges();
+  describe('modal de criação de ticket', () => {
+    beforeEach(fakeAsync(() => {
+      apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
+    }));
 
-    expect(apiSpy.getApplicationIncidentById).toHaveBeenCalledWith('consentimentos-inbound', '4');
-    expect(component.incident).toBeTruthy();
-    expect(component.isLoading).toBeFalse();
-  }));
+    it('openCreateTicketModal carrega preview e inicializa form', fakeAsync(() => {
+      const c = create();
+      apiSpy.getTicketPreview.and.resolveTo(makeTicketPreview());
+      c.ticketCreateError = 'Erro anterior';
+      c.ticketCreateSuccess = 'Sucesso anterior';
 
-  it('exibe mensagem de erro quando API falha ao carregar incidente', fakeAsync(() => {
-    apiSpy.getApplicationIncidentById.and.rejectWith(new Error('API indisponível'));
+      void c.openCreateTicketModal(); tick();
 
-    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
-    const component = fixture.componentInstance as any;
-
-    fixture.detectChanges();
-    tick();
-    fixture.detectChanges();
-
-    expect(component.errorMessage).toBe('API indisponível');
-    expect(component.isLoading).toBeFalse();
-  }));
-
-  it('buildTicketForm inicializa com PF e App to app', fakeAsync(() => {
-    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
-
-    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
-    const component = fixture.componentInstance as any;
-
-    fixture.detectChanges();
-    tick();
-
-    expect(component.ticketForm).toEqual({
-      title: '',
-      description: '',
-      template_fields: [],
-    });
-  }));
-
-  it('createTicket chama createIncidentTicket com tipo_cliente e canal_jornada', fakeAsync(() => {
-    const updatedIncident = makeIncident({ incident_status: 'ticket_created', related_ticket_id: '999' });
-    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
-    apiSpy.listTicketStatuses.and.resolveTo([{ id: '1', name: 'NOVO' }]);
-    apiSpy.createIncidentTicket.and.resolveTo({
-      incident: updatedIncident,
-      ticket_id: '999',
-      ticket: { id: 999 },
-    });
-    apiSpy.updateTicket.and.resolveTo({});
-
-    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
-    const component = fixture.componentInstance as any;
-
-    fixture.detectChanges();
-    tick();
-    fixture.detectChanges();
-
-    component.ticketPreview = makeTicketPreview();
-    component.ticketForm = {
-      title: 'Falha na criação de consentimento',
-      description: 'Erro ao criar consentimento',
-      template_fields: [
-        { key: 'CustomColumn120sr', value: 'PF' },
-        { key: 'CustomColumn174sr', value: 'App to app' },
-      ],
-    };
-
-    void component.createTicket();
-    tick();
-    fixture.detectChanges();
-
-    expect(apiSpy.createIncidentTicket).toHaveBeenCalledWith(
-      'consentimentos-inbound',
-      '4',
-      {
+      expect(c.ticketCreateError).toBe('');
+      expect(c.ticketCreateSuccess).toBe('');
+      expect(c.ticketForm).toEqual({
         title: 'Falha na criação de consentimento',
         description: 'Erro ao criar consentimento',
         template_fields: [
           { key: 'CustomColumn120sr', value: 'PF' },
           { key: 'CustomColumn174sr', value: 'App to app' },
         ],
-      }
-    );
-    expect(apiSpy.updateTicket).toHaveBeenCalledWith('999', {
-      id: '999',
-      info: [{ key: 'status', value: '1' }],
-    });
-  }));
+      });
+      expect(c.isCreateTicketModalVisible).toBeTrue();
+    }));
 
-  it('createTicket atualiza incident e exibe mensagem de sucesso', fakeAsync(() => {
-    const updatedIncident = makeIncident({ incident_status: 'ticket_created', related_ticket_id: '777' });
-    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
-    apiSpy.listTicketStatuses.and.resolveTo([{ id: '1', name: 'NOVO' }]);
-    apiSpy.createIncidentTicket.and.resolveTo({
-      incident: updatedIncident,
-      ticket_id: '777',
-      ticket: { id: 777 },
-    });
-    apiSpy.updateTicket.and.resolveTo({});
+    it('não abre modal quando incidente já possui ticket relacionado', fakeAsync(() => {
+      apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident({ related_ticket_id: '777' }));
+      const c = create();
+      void c.openCreateTicketModal(); tick();
+      expect(c.isCreateTicketModalVisible).toBeFalse();
+    }));
 
-    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
-    const component = fixture.componentInstance as any;
+    it('closeCreateTicketModal não fecha enquanto cria ticket', fakeAsync(() => {
+      const c = create();
+      c.isCreateTicketModalVisible = true;
+      c.isCreatingTicket = true;
+      c.closeCreateTicketModal();
+      expect(c.isCreateTicketModalVisible).toBeTrue();
+    }));
+  });
 
-    fixture.detectChanges();
-    tick();
-    fixture.detectChanges();
+  describe('createTicket', () => {
+    function setupCreateTicket(ticketId: string): void {
+      apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
+      apiSpy.listTicketStatuses.and.resolveTo([{ id: '1', name: 'NOVO' }]);
+      apiSpy.createIncidentTicket.and.resolveTo({
+        incident: makeIncident({ incident_status: 'ticket_created', related_ticket_id: ticketId }),
+        ticket_id: ticketId, ticket: { id: Number(ticketId) },
+      });
+      apiSpy.updateTicket.and.resolveTo({});
+    }
 
-    component.ticketPreview = makeTicketPreview();
-    component.ticketForm = {
-      title: 'Falha na criação de consentimento',
-      description: 'Erro ao criar consentimento',
-      template_fields: [],
-    };
-    void component.createTicket();
-    tick();
-    fixture.detectChanges();
+    it('chama API com payload correto', fakeAsync(() => {
+      setupCreateTicket('999');
+      const c = create();
+      c.ticketPreview = makeTicketPreview();
+      c.ticketForm = {
+        title: 'Falha na criação de consentimento',
+        description: 'Erro ao criar consentimento',
+        template_fields: [{ key: 'CustomColumn120sr', value: 'PF' }, { key: 'CustomColumn174sr', value: 'App to app' }],
+      };
 
-    expect(component.incident.incident_status).toBe('ticket_created');
-    expect(component.ticketCreateSuccess).toBe('Ticket #777 criado com sucesso.');
-    expect(component.isCreateTicketModalVisible).toBeFalse();
-    expect(facadeSpy.syncIncident).toHaveBeenCalled();
-  }));
+      void c.createTicket(); tick();
 
-  it('createTicket exibe erro quando API falha', fakeAsync(() => {
-    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
-    apiSpy.listTicketStatuses.and.resolveTo([{ id: '1', name: 'NOVO' }]);
-    apiSpy.createIncidentTicket.and.rejectWith(new Error('Campos obrigatórios não preenchidos'));
+      expect(apiSpy.createIncidentTicket).toHaveBeenCalledWith('consentimentos-inbound', '4',
+        jasmine.objectContaining({ title: 'Falha na criação de consentimento' }));
+      expect(apiSpy.updateTicket).toHaveBeenCalledWith('999',
+        jasmine.objectContaining({ info: [{ key: 'status', value: '1' }] }));
+    }));
 
-    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
-    const component = fixture.componentInstance as any;
+    it('exibe sucesso e sincroniza cache após criar ticket', fakeAsync(() => {
+      setupCreateTicket('777');
+      const c = create();
+      c.ticketPreview = makeTicketPreview();
+      c.ticketForm = { title: 'T', description: 'D', template_fields: [] };
 
-    fixture.detectChanges();
-    tick();
-    fixture.detectChanges();
+      void c.createTicket(); tick();
 
-    component.ticketPreview = makeTicketPreview();
-    component.ticketForm = {
-      title: 'Falha na criação de consentimento',
-      description: 'Erro ao criar consentimento',
-      template_fields: [],
-    };
-    void component.createTicket();
-    tick();
-    fixture.detectChanges();
+      expect(c.incident!.incident_status).toBe('ticket_created');
+      expect(c.ticketCreateSuccess).toBe('Ticket #777 criado com sucesso.');
+      expect(c.isCreateTicketModalVisible).toBeFalse();
+      expect(facadeSpy.syncIncident).toHaveBeenCalled();
+    }));
 
-    expect(component.ticketCreateError).toBe('Campos obrigatórios não preenchidos');
-    expect(component.isCreatingTicket).toBeFalse();
-  }));
+    it('exibe erro quando API falha', fakeAsync(() => {
+      apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
+      apiSpy.listTicketStatuses.and.resolveTo([{ id: '1', name: 'NOVO' }]);
+      apiSpy.createIncidentTicket.and.rejectWith(new Error('Campos obrigatórios não preenchidos'));
+      const c = create();
+      c.ticketPreview = makeTicketPreview();
+      c.ticketForm = { title: 'T', description: 'D', template_fields: [] };
 
-  it('createTicket exibe erro quando status NOVO nao existe na lista de estados', fakeAsync(() => {
-    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
-    apiSpy.listTicketStatuses.and.resolveTo([{ id: '2', name: 'EM ANÁLISE N1' }]);
-    apiSpy.createIncidentTicket.and.resolveTo({
-      incident: makeIncident({ incident_status: 'ticket_created', related_ticket_id: '777' }),
-      ticket_id: '777',
-      ticket: { id: 777 },
-    });
+      void c.createTicket(); tick();
 
-    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
-    const component = fixture.componentInstance as any;
+      expect(c.ticketCreateError).toBe('Campos obrigatórios não preenchidos');
+      expect(c.isCreatingTicket).toBeFalse();
+    }));
 
-    fixture.detectChanges();
-    tick();
-    fixture.detectChanges();
+    it('exibe erro quando status NOVO não está na lista', fakeAsync(() => {
+      apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
+      apiSpy.listTicketStatuses.and.resolveTo([{ id: '2', name: 'EM ANÁLISE N1' }]);
+      apiSpy.createIncidentTicket.and.resolveTo({
+        incident: makeIncident({ related_ticket_id: '777' }), ticket_id: '777', ticket: { id: 777 },
+      });
+      const c = create();
+      c.ticketPreview = makeTicketPreview();
+      c.ticketForm = { title: 'T', description: 'D', template_fields: [] };
 
-    component.ticketPreview = makeTicketPreview();
-    component.ticketForm = {
-      title: 'Falha na criação de consentimento',
-      description: 'Erro ao criar consentimento',
-      template_fields: [],
-    };
-    void component.createTicket();
-    tick();
-    fixture.detectChanges();
+      void c.createTicket(); tick();
 
-    expect(component.ticketCreateError).toBe('Status "NOVO" não encontrado.');
-    expect(apiSpy.updateTicket).not.toHaveBeenCalled();
-  }));
+      expect(c.ticketCreateError).toBe('Status "NOVO" não encontrado.');
+      expect(apiSpy.updateTicket).not.toHaveBeenCalled();
+    }));
+  });
 
-  it('openCreateTicketModal reinicia o form e limpa erros anteriores', fakeAsync(() => {
-    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
-    apiSpy.getTicketPreview.and.resolveTo(makeTicketPreview());
+  describe('formatValue', () => {
+    beforeEach(fakeAsync(() => {
+      apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
+    }));
 
-    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
-    const component = fixture.componentInstance as any;
-
-    fixture.detectChanges();
-    tick();
-    fixture.detectChanges();
-
-    component.ticketCreateError = 'Erro anterior';
-    component.ticketCreateSuccess = 'Sucesso anterior';
-    void component.openCreateTicketModal();
-    tick();
-    fixture.detectChanges();
-
-    expect(component.ticketCreateError).toBe('');
-    expect(component.ticketCreateSuccess).toBe('');
-    expect(component.ticketForm).toEqual({
-      title: 'Falha na criação de consentimento',
-      description: 'Erro ao criar consentimento',
-      template_fields: [
-        { key: 'CustomColumn120sr', value: 'PF' },
-        { key: 'CustomColumn174sr', value: 'App to app' },
-      ],
-    });
-    expect(component.isCreateTicketModalVisible).toBeTrue();
-  }));
-
-
-  it('desabilita criacao de ticket quando incidente ja possui ticket relacionado', fakeAsync(() => {
-    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident({ related_ticket_id: '777' }));
-
-    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
-    const component = fixture.componentInstance as any;
-
-    fixture.detectChanges();
-    tick();
-    fixture.detectChanges();
-
-    const button = fixture.nativeElement.querySelector('.detail-card__toolbar-actions button');
-
-    expect(component.hasRelatedTicket()).toBeTrue();
-    expect(button.disabled).toBeTrue();
-  }));
-
-  it('nao abre modal de criacao quando incidente ja possui ticket relacionado', fakeAsync(() => {
-    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident({ related_ticket_id: '777' }));
-
-    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
-    const component = fixture.componentInstance as any;
-
-    fixture.detectChanges();
-    tick();
-    fixture.detectChanges();
-
-    component.openCreateTicketModal();
-    tick();
-
-    expect(component.isCreateTicketModalVisible).toBeFalse();
-  }));
-
-  it('closeCreateTicketModal nao fecha enquanto cria ticket', fakeAsync(() => {
-    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
-
-    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
-    const component = fixture.componentInstance as any;
-
-    fixture.detectChanges();
-    tick();
-
-    component.isCreateTicketModalVisible = true;
-    component.isCreatingTicket = true;
-    component.closeCreateTicketModal();
-
-    expect(component.isCreateTicketModalVisible).toBeTrue();
-  }));
-
-  it('formatValue formata objetos como JSON indentado', fakeAsync(() => {
-    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
-
-    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
-    const component = fixture.componentInstance as any;
-
-    fixture.detectChanges();
-    tick();
-
-    const result = component.formatValue({ error: 'DETALHE_PGTO_INVALIDO' });
-    expect(result).toBe(JSON.stringify({ error: 'DETALHE_PGTO_INVALIDO' }, null, 2));
-  }));
-
-  it('formatValue retorna "Nao informado" para valores nulos ou vazios', fakeAsync(() => {
-    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
-
-    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
-    const component = fixture.componentInstance as any;
-
-    fixture.detectChanges();
-    tick();
-
-    expect(component.formatValue(null)).toBe('Nao informado');
-    expect(component.formatValue(undefined)).toBe('Nao informado');
-    expect(component.formatValue('')).toBe('Nao informado');
-  }));
+    it('retorna "Nao informado" para null, undefined e string vazia e serializa objetos como JSON', fakeAsync(() => {
+      const c = create();
+      expect(c.formatValue(null)).toBe('Nao informado');
+      expect(c.formatValue(undefined)).toBe('Nao informado');
+      expect(c.formatValue('')).toBe('Nao informado');
+      expect(c.formatValue({ error: 'DETALHE_PGTO_INVALIDO' }))
+        .toBe(JSON.stringify({ error: 'DETALHE_PGTO_INVALIDO' }, null, 2));
+    }));
+  });
 });

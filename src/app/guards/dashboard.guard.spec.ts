@@ -1,73 +1,46 @@
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRouteSnapshot, convertToParamMap, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
+import { ActivatedRouteSnapshot, convertToParamMap, Router, RouterStateSnapshot } from '@angular/router';
 
 import { dashboardGuard } from './dashboard.guard';
 import { PortalAuthService } from '../services/portal-auth.service';
 
 describe('dashboardGuard', () => {
   let authServiceSpy: jasmine.SpyObj<PortalAuthService>;
-  let routerSpy: jasmine.SpyObj<Router>;
 
   const mockRoute = { paramMap: convertToParamMap({}) } as unknown as ActivatedRouteSnapshot;
   const mockState = { url: '/dashboard' } as RouterStateSnapshot;
+  const run = () => TestBed.runInInjectionContext(() => dashboardGuard(mockRoute, mockState));
 
   beforeEach(() => {
     authServiceSpy = jasmine.createSpyObj<PortalAuthService>('PortalAuthService', [
-      'ensureSession',
-      'getProfile',
-      'getHomeRoute',
+      'ensureSession', 'getProfile', 'getHomeRoute',
     ]);
-    routerSpy = jasmine.createSpyObj<Router>('Router', ['parseUrl']);
-    routerSpy.parseUrl.and.callFake((url: string) => ({ toString: () => url }) as UrlTree);
 
     TestBed.configureTestingModule({
-      providers: [
-        { provide: PortalAuthService, useValue: authServiceSpy },
-        { provide: Router, useValue: routerSpy },
-      ],
+      providers: [{ provide: PortalAuthService, useValue: authServiceSpy }],
     });
   });
 
-  async function runGuard(): Promise<unknown> {
-    return TestBed.runInInjectionContext(() => dashboardGuard(mockRoute, mockState));
-  }
-
-  it('redireciona para /login quando sessao nao esta ativa', async () => {
+  it('redireciona para /login sem sessão ativa', async () => {
     authServiceSpy.ensureSession.and.resolveTo(false);
-
-    const result = await runGuard();
-
-    expect(routerSpy.parseUrl).toHaveBeenCalledOnceWith('/login');
-    expect((result as { toString(): string }).toString()).toBe('/login');
+    expect(String(await run())).toBe('/login');
   });
 
-  it('retorna true quando usuario e perfil adm', async () => {
+  it('permite acesso ao dashboard para administradores', async () => {
     authServiceSpy.ensureSession.and.resolveTo(true);
     authServiceSpy.getProfile.and.returnValue('adm');
-
-    const result = await runGuard();
-
-    expect(result).toBeTrue();
-    expect(routerSpy.parseUrl).not.toHaveBeenCalled();
+    expect(await run()).toBeTrue();
   });
 
-  it('redireciona para rota home quando usuario nao e adm', async () => {
+  it('redireciona usuários não-adm para a rota home da equipe', async () => {
     authServiceSpy.ensureSession.and.resolveTo(true);
     authServiceSpy.getProfile.and.returnValue('user');
     authServiceSpy.getHomeRoute.and.returnValue('/areas/consentimentos-outbound');
-
-    const result = await runGuard();
-
-    expect(routerSpy.parseUrl).toHaveBeenCalledOnceWith('/areas/consentimentos-outbound');
-    expect((result as { toString(): string }).toString()).toBe('/areas/consentimentos-outbound');
+    expect(String(await run())).toBe('/areas/consentimentos-outbound');
   });
 
-  it('redireciona para /login quando ensureSession lanca excecao', async () => {
-    authServiceSpy.ensureSession.and.rejectWith(new Error('Falha de autenticacao'));
-
-    const result = await runGuard();
-
-    expect(routerSpy.parseUrl).toHaveBeenCalledOnceWith('/login');
-    expect((result as { toString(): string }).toString()).toBe('/login');
+  it('redireciona para /login em caso de erro inesperado', async () => {
+    authServiceSpy.ensureSession.and.rejectWith(new Error('Falha'));
+    expect(String(await run())).toBe('/login');
   });
 });
