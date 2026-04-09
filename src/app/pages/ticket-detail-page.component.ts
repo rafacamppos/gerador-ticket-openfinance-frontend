@@ -158,7 +158,7 @@ export class TicketDetailPageComponent implements OnInit {
     }
 
     const value = this.routingPayload().owner_name;
-    return typeof value === 'string' && value.trim() ? value : 'Nao informado';
+    return typeof value === 'string' && value.trim() ? value : 'Não informado';
   }
 
   protected ticketCategory(): OpenFinanceTicketCategory {
@@ -242,7 +242,7 @@ export class TicketDetailPageComponent implements OnInit {
 
   protected formatValue(value: unknown): string {
     if (value === null || value === undefined || value === '') {
-      return 'Nao informado';
+      return 'Não informado';
     }
 
     if (typeof value === 'boolean') {

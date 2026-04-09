@@ -109,6 +109,21 @@
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
+  transition:
+    background 120ms ease,
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.login-card__submit:hover:not(:disabled) {
+  background: #106b81;
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(20, 125, 150, 0.22);
+}
+
+.login-card__submit:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 .login-card__submit:disabled {

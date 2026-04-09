@@ -33,8 +33,8 @@ export class TicketListPanelComponent implements OnChanges {
   @Input() ticketStatuses: TicketStatusOption[] = [];
   @Input() isLoadingTicketStatuses = false;
   @Input() ticketStatusError = '';
-  @Input() initialMessage = 'Nenhum ticket foi carregado para esta area.';
-  @Input() emptySearchMessage = 'Nenhum ticket foi localizado para esta area.';
+  @Input() initialMessage = 'Nenhum ticket foi carregado para esta área.';
+  @Input() emptySearchMessage = 'Nenhum ticket foi localizado para esta área.';
   @Output() receivedTicketsOpen = new EventEmitter<void>();
 
   protected readonly pageSize = 10;

@@ -98,6 +98,19 @@ describe('ApplicationIncidentsPageComponent', () => {
     );
   }));
 
+  it('buildEmptyIncidentForm preenche occurred_at em formato local para datetime-local', fakeAsync(() => {
+    jasmine.clock().install();
+    jasmine.clock().mockDate(new Date('2026-04-08T15:00:00.000Z'));
+
+    try {
+      const c = createComponent();
+      expect(c.incidentForm.occurred_at).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
+      expect(c.incidentForm.occurred_at.endsWith('Z')).toBeFalse();
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  }));
+
   it('reseta formulário e exibe confirmação após envio bem-sucedido', fakeAsync(() => {
     apiSpy.reportApplicationIncident.and.resolveTo(makeIncident());
     const c = createComponent();

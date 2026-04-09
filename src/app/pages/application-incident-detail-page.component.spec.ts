@@ -15,10 +15,13 @@ type Comp = ApplicationIncidentDetailPageComponent & {
   ticketForm: { title: string; description: string; template_fields: Array<{ key: string; value: string }> };
   isCreateTicketModalVisible: boolean; isCreatingTicket: boolean; isLoadingTicketPreview: boolean;
   ticketCreateError: string; ticketCreateSuccess: string;
+  isAssignedToMe(): boolean;
   hasRelatedTicket(): boolean;
+  canCreateTicket(): boolean;
   openCreateTicketModal(): Promise<void>;
   closeCreateTicketModal(): void;
   createTicket(): Promise<void>;
+  formatDateTime(v: unknown): string;
   formatValue(v: unknown): string;
 };
 
@@ -111,6 +114,16 @@ describe('ApplicationIncidentDetailPageComponent', () => {
     }));
 
     it('openCreateTicketModal carrega preview e inicializa form', fakeAsync(() => {
+      authSpy.getUser.and.returnValue({
+        id: '11',
+        name: 'Analista',
+        email: 'analista@santander.com.br',
+        profile: 'user',
+        team: null,
+      });
+      apiSpy.getApplicationIncidentById.and.resolveTo(
+        makeIncident({ assigned_to_user_id: '11', assigned_to_email: 'analista@santander.com.br' })
+      );
       const c = create();
       apiSpy.getTicketPreview.and.resolveTo(makeTicketPreview());
       c.ticketCreateError = 'Erro anterior';
@@ -226,13 +239,233 @@ describe('ApplicationIncidentDetailPageComponent', () => {
       apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
     }));
 
-    it('retorna "Nao informado" para null, undefined e string vazia e serializa objetos como JSON', fakeAsync(() => {
+    it('retorna "Não informado" para null, undefined e string vazia e serializa objetos como JSON', fakeAsync(() => {
       const c = create();
-      expect(c.formatValue(null)).toBe('Nao informado');
-      expect(c.formatValue(undefined)).toBe('Nao informado');
-      expect(c.formatValue('')).toBe('Nao informado');
+      expect(c.formatValue(null)).toBe('Não informado');
+      expect(c.formatValue(undefined)).toBe('Não informado');
+      expect(c.formatValue('')).toBe('Não informado');
       expect(c.formatValue({ error: 'DETALHE_PGTO_INVALIDO' }))
         .toBe(JSON.stringify({ error: 'DETALHE_PGTO_INVALIDO' }, null, 2));
     }));
   });
+
+  it('openCreateTicketModal reinicia o form e limpa erros anteriores', fakeAsync(() => {
+    authSpy.getUser.and.returnValue({
+      id: '11',
+      name: 'Analista',
+      email: 'analista@santander.com.br',
+      profile: 'user',
+      team: null,
+    });
+    apiSpy.getApplicationIncidentById.and.resolveTo(
+      makeIncident({ assigned_to_user_id: '11', assigned_to_email: 'analista@santander.com.br' })
+    );
+    apiSpy.getTicketPreview.and.resolveTo(makeTicketPreview());
+
+    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
+    const component = fixture.componentInstance as any;
+
+    fixture.detectChanges();
+    tick();
+    fixture.detectChanges();
+
+    component.ticketCreateError = 'Erro anterior';
+    component.ticketCreateSuccess = 'Sucesso anterior';
+    void component.openCreateTicketModal();
+    tick();
+    fixture.detectChanges();
+
+    expect(component.ticketCreateError).toBe('');
+    expect(component.ticketCreateSuccess).toBe('');
+    expect(component.ticketForm).toEqual({
+      title: 'Falha na criação de consentimento',
+      description: 'Erro ao criar consentimento',
+      template_fields: [
+        { key: 'CustomColumn120sr', value: 'PF' },
+        { key: 'CustomColumn174sr', value: 'App to app' },
+      ],
+    });
+    expect(component.isCreateTicketModalVisible).toBeTrue();
+  }));
+
+
+  it('desabilita criacao de ticket quando incidente ja possui ticket relacionado', fakeAsync(() => {
+    authSpy.getUser.and.returnValue({
+      id: '11',
+      name: 'Analista',
+      email: 'analista@santander.com.br',
+      profile: 'user',
+      team: null,
+    });
+    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident({ related_ticket_id: '777' }));
+
+    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
+    const component = fixture.componentInstance as any;
+
+    fixture.detectChanges();
+    tick();
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector('.detail-card__toolbar-actions button');
+
+    expect(component.hasRelatedTicket()).toBeTrue();
+    expect(component.canCreateTicket()).toBeFalse();
+    expect(button.disabled).toBeTrue();
+  }));
+
+  it('desabilita criacao de ticket quando incidente nao esta atribuido a mim', fakeAsync(() => {
+    authSpy.getUser.and.returnValue({
+      id: '11',
+      name: 'Analista',
+      email: 'analista@santander.com.br',
+      profile: 'user',
+      team: null,
+    });
+    apiSpy.getApplicationIncidentById.and.resolveTo(
+      makeIncident({ assigned_to_user_id: '22', assigned_to_email: 'outro@santander.com.br' })
+    );
+
+    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
+    const component = fixture.componentInstance as any;
+
+    fixture.detectChanges();
+    tick();
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector('.detail-card__toolbar-actions button');
+
+    expect(component.isAssignedToMe()).toBeFalse();
+    expect(component.canCreateTicket()).toBeFalse();
+    expect(button.disabled).toBeTrue();
+  }));
+
+  it('habilita criacao de ticket quando incidente esta atribuido a mim e sem ticket relacionado', fakeAsync(() => {
+    authSpy.getUser.and.returnValue({
+      id: '11',
+      name: 'Analista',
+      email: 'analista@santander.com.br',
+      profile: 'user',
+      team: null,
+    });
+    apiSpy.getApplicationIncidentById.and.resolveTo(
+      makeIncident({ assigned_to_user_id: '11', assigned_to_email: 'analista@santander.com.br' })
+    );
+
+    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
+    const component = fixture.componentInstance as any;
+
+    fixture.detectChanges();
+    tick();
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector('.detail-card__toolbar-actions button');
+
+    expect(component.isAssignedToMe()).toBeTrue();
+    expect(component.canCreateTicket()).toBeTrue();
+    expect(button.disabled).toBeFalse();
+  }));
+
+  it('nao abre modal de criacao quando incidente ja possui ticket relacionado', fakeAsync(() => {
+    authSpy.getUser.and.returnValue({
+      id: '11',
+      name: 'Analista',
+      email: 'analista@santander.com.br',
+      profile: 'user',
+      team: null,
+    });
+    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident({ related_ticket_id: '777' }));
+
+    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
+    const component = fixture.componentInstance as any;
+
+    fixture.detectChanges();
+    tick();
+    fixture.detectChanges();
+
+    component.openCreateTicketModal();
+    tick();
+
+    expect(component.isCreateTicketModalVisible).toBeFalse();
+  }));
+
+  it('nao abre modal de criacao quando incidente nao esta atribuido a mim', fakeAsync(() => {
+    authSpy.getUser.and.returnValue({
+      id: '11',
+      name: 'Analista',
+      email: 'analista@santander.com.br',
+      profile: 'user',
+      team: null,
+    });
+    apiSpy.getApplicationIncidentById.and.resolveTo(
+      makeIncident({ assigned_to_user_id: '22', assigned_to_email: 'outro@santander.com.br' })
+    );
+
+    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
+    const component = fixture.componentInstance as any;
+
+    fixture.detectChanges();
+    tick();
+    fixture.detectChanges();
+
+    component.openCreateTicketModal();
+    tick();
+
+    expect(component.isCreateTicketModalVisible).toBeFalse();
+  }));
+
+  it('closeCreateTicketModal nao fecha enquanto cria ticket', fakeAsync(() => {
+    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
+
+    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
+    const component = fixture.componentInstance as any;
+
+    fixture.detectChanges();
+    tick();
+
+    component.isCreateTicketModalVisible = true;
+    component.isCreatingTicket = true;
+    component.closeCreateTicketModal();
+
+    expect(component.isCreateTicketModalVisible).toBeTrue();
+  }));
+
+  it('formatValue formata objetos como JSON indentado', fakeAsync(() => {
+    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
+
+    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
+    const component = fixture.componentInstance as any;
+
+    fixture.detectChanges();
+    tick();
+
+    const result = component.formatValue({ error: 'DETALHE_PGTO_INVALIDO' });
+    expect(result).toBe(JSON.stringify({ error: 'DETALHE_PGTO_INVALIDO' }, null, 2));
+  }));
+
+  it('formatValue retorna "Não informado" para valores nulos ou vazios', fakeAsync(() => {
+    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
+
+    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
+    const component = fixture.componentInstance as any;
+
+    fixture.detectChanges();
+    tick();
+
+    expect(component.formatValue(null)).toBe('Não informado');
+    expect(component.formatValue(undefined)).toBe('Não informado');
+    expect(component.formatValue('')).toBe('Não informado');
+  }));
+
+  it('formatDateTime formata timestamp ISO em horario local legivel', fakeAsync(() => {
+    apiSpy.getApplicationIncidentById.and.resolveTo(makeIncident());
+
+    const fixture = TestBed.createComponent(ApplicationIncidentDetailPageComponent);
+    const component = fixture.componentInstance as any;
+
+    fixture.detectChanges();
+    tick();
+
+    const result = component.formatDateTime('2026-04-01T10:05:00.000Z');
+    expect(result).toMatch(/^\d{2}-\d{2}-\d{4} \d{2}:\d{2}:\d{2}$/);
+  }));
 });

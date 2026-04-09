@@ -16,8 +16,8 @@ export class ApplicationIncidentListPanelComponent implements OnChanges {
   @Input() isLoading = false;
   @Input() hasSearched = false;
   @Input() errorMessage = '';
-  @Input() initialMessage = 'Nenhum incidente foi carregado para esta area.';
-  @Input() emptySearchMessage = 'Nenhum incidente foi localizado para esta area.';
+  @Input() initialMessage = 'Nenhum incidente foi carregado para esta área.';
+  @Input() emptySearchMessage = 'Nenhum incidente foi localizado para esta área.';
 
   protected readonly pageSize = 10;
   protected currentPage = 1;

@@ -88,7 +88,7 @@ export class ApplicationIncidentsService {
       statusCodeLabel: incident.http_status_code
         ? `HTTP ${incident.http_status_code}`
         : 'HTTP N/A',
-      incidentStatusLabel: String(incident.incident_status_label ?? 'Nao informado'),
+      incidentStatusLabel: String(incident.incident_status_label ?? 'Não informado'),
       relatedTicketId: incident.related_ticket_id ? String(incident.related_ticket_id) : null,
       summary: incident.title || 'Sem título',
       dataHora: this.formatDateTime(incident.occurred_at),

@@ -14,31 +14,31 @@
       {{ initialMessage }}
     </div>
   } @else {
-    <div class="widgetTab__requestList">
+    <div class="incident-list">
       @for (incident of paginatedIncidents; track incident.id) {
         <a
-          class="widgetTab__noDecoration___2F1Vh srListItem__requestListItem___1upUH"
+          class="incident-card"
           [routerLink]="['/areas', ownerSlug, 'incidentes-aplicacoes', incident.id]"
         >
-          <div class="srListItem__content">
-            <div class="srListItem__main">
-              <div class="srListItem__defaultDetails___2UOMu">
-                <div class="srListItem__iconWrapper___24jfq">
-                  <span class="iconIssue srListItem__listItemIcon___2sZIh IssueIcon"></span>
+          <div class="incident-card__content">
+            <div class="incident-card__main">
+              <div class="incident-card__header-row">
+                <div class="incident-card__icon-wrapper">
+                  <span class="iconIssue IssueIcon" aria-hidden="true"></span>
                 </div>
-                <div class="srListItem__requestListItemSubject___3VIge">
+                <div class="incident-card__title">
                   <strong><span>#{{ incident.id }}:</span></strong>
                   <span>{{ incident.summary }}</span>
                 </div>
               </div>
-              <div class="badgesContainer__badges___2IrR4">
-                <span class="badgesContainer__reqInfo___jtJmE">
+              <div class="incident-card__badges">
+                <span class="incident-card__badge-wrap">
                   <span class="badge badge--status">
                     HTTP:
                     <span>{{ incident.statusCodeLabel }}</span>
                   </span>
                 </span>
-                <span class="badgesContainer__reqInfo___jtJmE">
+                <span class="incident-card__badge-wrap">
                   <span
                     class="badge badge--flow"
                     [class.badge--incident-new]="!incident.incidentStatus || hasIncidentStatus(incident, 'new')"
@@ -52,41 +52,41 @@
                     <span>{{ incident.incidentStatusLabel }}</span>
                   </span>
                 </span>
-                <span class="badgesContainer__reqInfo___jtJmE">
+                <span class="incident-card__badge-wrap">
                   <span class="badge badge--flow">
-                    Metodo:
+                    Método:
                     <span>{{ incident.method }}</span>
                   </span>
                 </span>
               </div>
-              <div class="srListItem__requestListItemSummary___local">
+              <div class="incident-card__summary">
                 {{ incident.summary }}
               </div>
             </div>
-            <div class="columnsContainer__moreDetailsWrapper___2qXir">
-              <div class="columnsContainer__requestListItemMoreDetails___39suO">
+            <div class="incident-card__meta-grid">
+              <div class="incident-card__meta-col">
                 <strong>Data do erro</strong>
-                <div class="columnsContainer__columnDefault___1BXC1">
-                  <div class="columnsContainer__textBlockEllipsis___2OcmZ" [title]="incident.dataHora">
+                <div class="incident-card__meta-value">
+                  <div class="incident-card__meta-text" [title]="incident.dataHora">
                     {{ incident.dataHora }}
                   </div>
                 </div>
               </div>
-              <div class="columnsContainer__requestListItemMoreDetails___39suO">
+              <div class="incident-card__meta-col">
                 <strong>Ticket relacionado</strong>
-                <div class="columnsContainer__columnDefault___1BXC1">
+                <div class="incident-card__meta-value">
                   <div
-                    class="columnsContainer__textBlockEllipsis___2OcmZ"
-                    [title]="incident.relatedTicketId || 'Nao informado'"
+                    class="incident-card__meta-text"
+                    [title]="incident.relatedTicketId || 'Não informado'"
                   >
-                    {{ incident.relatedTicketId || 'Nao informado' }}
+                    {{ incident.relatedTicketId || 'Não informado' }}
                   </div>
                 </div>
               </div>
-              <div class="columnsContainer__requestListItemMoreDetails___39suO">
+              <div class="incident-card__meta-col">
                 <strong>Registrado em</strong>
-                <div class="columnsContainer__columnDefault___1BXC1">
-                  <div class="columnsContainer__textBlockEllipsis___2OcmZ" [title]="incident.createdAt">
+                <div class="incident-card__meta-value">
+                  <div class="incident-card__meta-text" [title]="incident.createdAt">
                     {{ incident.createdAt }}
                   </div>
                 </div>
@@ -126,7 +126,7 @@
           (click)="nextPage()"
           [disabled]="currentPage === totalPages"
         >
-          Proxima
+          Próxima
         </button>
       </div>
     }

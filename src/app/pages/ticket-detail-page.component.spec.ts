@@ -173,16 +173,18 @@ describe('TicketDetailPageComponent', () => {
       create(); fixture.detectChanges(); tick();
     }));
 
-    it('retorna "Nao informado" para null, undefined e string vazia', () => {
-      expect(c.formatValue(null)).toBe('Nao informado');
-      expect(c.formatValue(undefined)).toBe('Nao informado');
-      expect(c.formatValue('')).toBe('Nao informado');
+    it('retorna "Não informado" para null, undefined e string vazia', () => {
+      expect(c.formatValue(null)).toBe('Não informado');
+      expect(c.formatValue(undefined)).toBe('Não informado');
+      expect(c.formatValue('')).toBe('Não informado');
     });
 
     it('serializa booleans e objetos corretamente', () => {
       expect(c.formatValue(true)).toBe('Sim');
       expect(c.formatValue(false)).toBe('Nao');
       expect(c.formatValue({ k: 1 })).toBe('{\n  "k": 1\n}');
+      expect(c.formatValue(42)).toBe('42');
+      expect(c.formatValue('texto')).toBe('texto');
     });
   });
 
