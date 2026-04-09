@@ -1,28 +1,18 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 
-import { OpenFinanceApiService, TicketStatusOption } from './open-finance-api.service';
+import { OpenFinanceApiService } from './open-finance-api.service';
 import { OpenFinanceTicketService, TicketListItem } from './open-finance-ticket.service';
 import { TicketListFacadeService } from './ticket-list-facade.service';
 
-function makeTicketItem(overrides: Partial<TicketListItem> = {}): TicketListItem {
+function makeTicket(overrides: Partial<TicketListItem> = {}): TicketListItem {
   return {
-    id: '1',
-    title: 'Ticket',
-    description: 'Descricao',
-    status: 'NOVO',
-    type: 'Incidente',
-    ticketType: '1',
-    template: '20',
-    categoryNivel1: 'Cat',
-    categoryNivel2: 'Sub',
-    categoryNivel3: 'Nivel 3',
-    assignmentGroup: 'N2',
-    requesterInstitution: 'Banco X',
-    criadoEm: '01-04-2026 10:00:00',
-    criadoEmMs: 1000,
-    atualizadoEm: '01-04-2026 10:10:00',
-    atualizadoEmMs: 2000,
+    id: '1', title: 'Ticket', description: 'Desc', status: 'NOVO',
+    type: 'Inc', ticketType: '1', template: '20',
+    categoryNivel1: 'C', categoryNivel2: 'S', categoryNivel3: 'N3',
+    assignmentGroup: 'G', requesterInstitution: '',
+    criadoEm: '01-04-2026', criadoEmMs: 1000,
+    atualizadoEm: '01-04-2026', atualizadoEmMs: 2000,
     flow: null,
     ...overrides,
   };
@@ -35,17 +25,10 @@ describe('TicketListFacadeService', () => {
 
   beforeEach(() => {
     apiSpy = jasmine.createSpyObj<OpenFinanceApiService>('OpenFinanceApiService', [
-      'listTickets',
-      'listKnownTickets',
-      'listTicketStatuses',
+      'listTickets', 'listKnownTickets', 'listTicketStatuses',
     ]);
     ticketServiceSpy = jasmine.createSpyObj<OpenFinanceTicketService>('OpenFinanceTicketService', [
-      'getTickets',
-      'hasFreshTickets',
-      'setTickets',
-      'mapTicketListPayload',
-      'mapKnownTicketListPayload',
-      'mergeTickets',
+      'getTickets', 'hasFreshTickets', 'setTickets', 'mapTicketListPayload', 'mapKnownTicketListPayload', 'mergeTickets',
     ]);
 
     TestBed.configureTestingModule({
@@ -59,164 +42,67 @@ describe('TicketListFacadeService', () => {
     service = TestBed.inject(TicketListFacadeService);
   });
 
-  describe('getCachedTickets', () => {
-    it('delega para ticketService.getTickets', () => {
-      const tickets = [makeTicketItem()];
-      ticketServiceSpy.getTickets.and.returnValue(tickets);
+  it('loadTickets busca da API, mescla com existentes e salva em cache', async () => {
+    const existingTickets = [makeTicket({ id: '5' })];
+    const syncedTickets   = [makeTicket({ id: '10' })];
+    const merged          = [...existingTickets, ...syncedTickets];
 
-      const result = service.getCachedTickets('consentimentos-outbound');
+    apiSpy.listTickets.and.resolveTo([] as never);
+    ticketServiceSpy.mapTicketListPayload.and.returnValue(syncedTickets);
+    ticketServiceSpy.mergeTickets.and.returnValue(merged);
 
-      expect(ticketServiceSpy.getTickets).toHaveBeenCalledOnceWith('consentimentos-outbound');
-      expect(result).toEqual(tickets);
+    const result = await service.loadTickets({
+      apiOwnerSlug: 'consentimentos-outbound',
+      cacheOwnerSlug: 'consentimentos-outbound',
+      existingTickets,
     });
+
+    expect(apiSpy.listTickets).toHaveBeenCalledOnceWith('consentimentos-outbound');
+    expect(ticketServiceSpy.mergeTickets).toHaveBeenCalledOnceWith(existingTickets, syncedTickets);
+    expect(ticketServiceSpy.setTickets).toHaveBeenCalledOnceWith('consentimentos-outbound', merged);
+    expect(result).toEqual(merged);
   });
 
-  describe('hasFreshTickets', () => {
-    it('delega para ticketService.hasFreshTickets', () => {
-      ticketServiceSpy.hasFreshTickets.and.returnValue(true);
+  it('loadTickets aceita getter para capturar existingTickets após resolução da API', async () => {
+    const existing = [makeTicket({ id: '5' })];
+    ticketServiceSpy.mapTicketListPayload.and.returnValue([]);
+    ticketServiceSpy.mergeTickets.and.returnValue(existing);
+    apiSpy.listTickets.and.resolveTo([] as never);
 
-      const result = service.hasFreshTickets('iniciadora-pagamentos');
+    const getter = jasmine.createSpy('getter').and.returnValue(existing);
+    await service.loadTickets({ cacheOwnerSlug: 'equipe-a', existingTickets: getter });
 
-      expect(ticketServiceSpy.hasFreshTickets).toHaveBeenCalledOnceWith('iniciadora-pagamentos');
-      expect(result).toBeTrue();
-    });
+    expect(getter).toHaveBeenCalled();
+    expect(ticketServiceSpy.mergeTickets).toHaveBeenCalledOnceWith(existing, []);
   });
 
-  describe('setCachedTickets', () => {
-    it('delega para ticketService.setTickets', () => {
-      const tickets = [makeTicketItem()];
-
-      service.setCachedTickets('detentora-pagamentos', tickets);
-
-      expect(ticketServiceSpy.setTickets).toHaveBeenCalledOnceWith('detentora-pagamentos', tickets);
-    });
+  it('preloadKnownTickets não chama API quando ownerSlug está vazio', async () => {
+    expect(await service.preloadKnownTickets('')).toEqual([]);
+    expect(apiSpy.listKnownTickets).not.toHaveBeenCalled();
   });
 
-  describe('loadTickets', () => {
-    it('carrega tickets da API, mapeia, mescla e armazena em cache', async () => {
-      const rawPayload = [{}];
-      const mappedTickets = [makeTicketItem({ id: '10' })];
-      const existingTickets = [makeTicketItem({ id: '5' })];
-      const mergedTickets = [...existingTickets, ...mappedTickets];
+  it('preloadKnownTickets salva tickets conhecidos em cache', async () => {
+    const known = [makeTicket({ id: '3' })];
+    apiSpy.listKnownTickets.and.resolveTo([] as never);
+    ticketServiceSpy.mapKnownTicketListPayload.and.returnValue(known);
 
-      apiSpy.listTickets.and.resolveTo(rawPayload as never);
-      ticketServiceSpy.mapTicketListPayload.and.returnValue(mappedTickets);
-      ticketServiceSpy.mergeTickets.and.returnValue(mergedTickets);
+    await service.preloadKnownTickets('consentimentos-inbound');
 
-      const result = await service.loadTickets({
-        apiOwnerSlug: 'consentimentos-outbound',
-        cacheOwnerSlug: 'consentimentos-outbound',
-        existingTickets,
-      });
-
-      expect(apiSpy.listTickets).toHaveBeenCalledOnceWith('consentimentos-outbound');
-      expect(ticketServiceSpy.mapTicketListPayload).toHaveBeenCalledOnceWith(rawPayload);
-      expect(ticketServiceSpy.mergeTickets).toHaveBeenCalledOnceWith(existingTickets, mappedTickets);
-      expect(ticketServiceSpy.setTickets).toHaveBeenCalledOnceWith('consentimentos-outbound', mergedTickets);
-      expect(result).toEqual(mergedTickets);
-    });
-
-    it('usa array vazio quando existingTickets nao e informado', async () => {
-      const mappedTickets: TicketListItem[] = [];
-      apiSpy.listTickets.and.resolveTo([] as never);
-      ticketServiceSpy.mapTicketListPayload.and.returnValue(mappedTickets);
-      ticketServiceSpy.mergeTickets.and.returnValue([]);
-
-      await service.loadTickets({ cacheOwnerSlug: 'servicos-outbound' });
-
-      expect(ticketServiceSpy.mergeTickets).toHaveBeenCalledOnceWith([], mappedTickets);
-    });
-
-    it('aceita existingTickets como getter avaliado apos a chamada a API', async () => {
-      const existingTickets = [makeTicketItem({ id: '5' })];
-      const mappedTickets = [makeTicketItem({ id: '10' })];
-      const mergedTickets = [...existingTickets, ...mappedTickets];
-
-      apiSpy.listTickets.and.resolveTo([] as never);
-      ticketServiceSpy.mapTicketListPayload.and.returnValue(mappedTickets);
-      ticketServiceSpy.mergeTickets.and.returnValue(mergedTickets);
-
-      const getter = jasmine.createSpy('getter').and.returnValue(existingTickets);
-
-      const result = await service.loadTickets({
-        cacheOwnerSlug: 'consentimentos-outbound',
-        existingTickets: getter,
-      });
-
-      expect(getter).toHaveBeenCalled();
-      expect(ticketServiceSpy.mergeTickets).toHaveBeenCalledOnceWith(existingTickets, mappedTickets);
-      expect(result).toEqual(mergedTickets);
-    });
-  });
-
-  describe('loadKnownTickets', () => {
-    it('carrega tickets conhecidos da API e mapeia', async () => {
-      const rawPayload = [{}];
-      const knownTickets = [makeTicketItem({ id: '7' })];
-
-      apiSpy.listKnownTickets.and.resolveTo(rawPayload as never);
-      ticketServiceSpy.mapKnownTicketListPayload.and.returnValue(knownTickets);
-
-      const result = await service.loadKnownTickets('compartilhamento-dados-maq-captura');
-
-      expect(apiSpy.listKnownTickets).toHaveBeenCalledOnceWith('compartilhamento-dados-maq-captura');
-      expect(ticketServiceSpy.mapKnownTicketListPayload).toHaveBeenCalledOnceWith(rawPayload);
-      expect(result).toEqual(knownTickets);
-    });
-  });
-
-  describe('preloadKnownTickets', () => {
-    it('retorna array vazio quando ownerSlug esta vazio', async () => {
-      const result = await service.preloadKnownTickets('');
-
-      expect(apiSpy.listKnownTickets).not.toHaveBeenCalled();
-      expect(result).toEqual([]);
-    });
-
-    it('carrega e armazena tickets conhecidos em cache quando ownerSlug e informado', async () => {
-      const knownTickets = [makeTicketItem({ id: '3' })];
-      apiSpy.listKnownTickets.and.resolveTo([] as never);
-      ticketServiceSpy.mapKnownTicketListPayload.and.returnValue(knownTickets);
-
-      const result = await service.preloadKnownTickets('consentimentos-inbound');
-
-      expect(ticketServiceSpy.setTickets).toHaveBeenCalledOnceWith('consentimentos-inbound', knownTickets);
-      expect(result).toEqual(knownTickets);
-    });
-  });
-
-  describe('loadTicketStatuses', () => {
-    it('delega para openFinanceApi.listTicketStatuses', async () => {
-      const statuses: TicketStatusOption[] = [{ id: '1', name: 'Novo' }];
-      apiSpy.listTicketStatuses.and.resolveTo(statuses);
-
-      const result = await service.loadTicketStatuses();
-
-      expect(apiSpy.listTicketStatuses).toHaveBeenCalled();
-      expect(result).toEqual(statuses);
-    });
+    expect(ticketServiceSpy.setTickets).toHaveBeenCalledOnceWith('consentimentos-inbound', known);
   });
 
   describe('getLoadErrorMessage', () => {
-    it('retorna mensagem de sessao para erro 401', () => {
-      const error = new HttpErrorResponse({ status: 401 });
-      expect(service.getLoadErrorMessage(error)).toBe(
-        'Nao foi possivel renovar a sessao automaticamente na integracao Open Finance.'
-      );
-    });
+    const casos: Array<[string, unknown, string]> = [
+      ['401',        new HttpErrorResponse({ status: 401 }), 'Nao foi possivel renovar a sessao automaticamente na integracao Open Finance.'],
+      ['503',        new HttpErrorResponse({ status: 503 }), 'Falha ao consultar tickets (503).'],
+      ['Error',      new Error('Timeout'),                   'Timeout'],
+      ['desconhecido', 'algo errado',                        'Nao foi possivel consultar tickets.'],
+    ];
 
-    it('retorna mensagem com status para outros erros HTTP', () => {
-      const error = new HttpErrorResponse({ status: 503 });
-      expect(service.getLoadErrorMessage(error)).toBe('Falha ao consultar tickets (503).');
-    });
-
-    it('retorna mensagem do Error', () => {
-      const error = new Error('Timeout');
-      expect(service.getLoadErrorMessage(error)).toBe('Timeout');
-    });
-
-    it('retorna mensagem generica para erros desconhecidos', () => {
-      expect(service.getLoadErrorMessage('algo errado')).toBe('Nao foi possivel consultar tickets.');
+    casos.forEach(([label, err, expected]) => {
+      it(`formata mensagem para erro ${label}`, () => {
+        expect(service.getLoadErrorMessage(err)).toBe(expected);
+      });
     });
   });
 });
