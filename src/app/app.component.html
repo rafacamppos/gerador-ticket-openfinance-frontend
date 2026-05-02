@@ -13,25 +13,6 @@
         </a>
 
         <div class="portal-header__right">
-          <div class="environment-selector">
-            <label class="environment-selector__label" for="open-finance-environment">
-              Ambiente
-            </label>
-            <select
-              id="open-finance-environment"
-              class="environment-selector__select"
-              [value]="selectedEnvironmentKey"
-              [disabled]="isUpdatingEnvironment || !environments.length"
-              (change)="updateEnvironment($event)"
-            >
-              @for (environment of environments; track environment.key) {
-                <option [value]="environment.key">{{ environment.label }}</option>
-              }
-            </select>
-            @if (environmentError) {
-              <span class="environment-selector__error">{{ environmentError }}</span>
-            }
-          </div>
           <div class="user-panel">
             <button class="user-panel__trigger" type="button" aria-label="Usuário logado">
               <span class="user-panel__avatar" aria-hidden="true"></span>

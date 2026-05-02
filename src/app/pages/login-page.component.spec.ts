@@ -6,7 +6,7 @@ import { LoginPageComponent } from './login-page.component';
 import { PortalAuthService } from '../services/portal-auth.service';
 
 type LoginComp = {
-  email: string; password: string;
+  email: string;
   isSubmitting: boolean; errorMessage: string;
   submit(): Promise<void>;
 };
@@ -36,9 +36,8 @@ describe('LoginPageComponent', () => {
   });
 
   const camposObrigatorios: Array<[string, Partial<LoginComp>]> = [
-    ['e-mail vazio',          { email: '',    password: 'senha' }],
-    ['e-mail só com espaços', { email: '  ',  password: 'senha' }],
-    ['senha vazia',           { email: 'a@b', password: ''      }],
+    ['e-mail vazio',          { email: ''   }],
+    ['e-mail só com espaços', { email: '  ' }],
   ];
 
   camposObrigatorios.forEach(([desc, campos]) => {
@@ -46,7 +45,7 @@ describe('LoginPageComponent', () => {
       Object.assign(c, campos);
       c.submit();
       tick();
-      expect(c.errorMessage).toBe('Informe e-mail e senha.');
+      expect(c.errorMessage).toBe('Informe seu e-mail.');
       expect(authServiceSpy.login).not.toHaveBeenCalled();
     }));
   });
@@ -57,18 +56,17 @@ describe('LoginPageComponent', () => {
     authServiceSpy.getHomeRoute.and.returnValue('/dashboard');
 
     c.email = '  admin@empresa.com  ';
-    c.password = 'senha123';
     c.submit();
     tick();
 
-    expect(authServiceSpy.login).toHaveBeenCalledOnceWith('admin@empresa.com', 'senha123');
+    expect(authServiceSpy.login).toHaveBeenCalledOnceWith('admin@empresa.com', '');
     expect(routerSpy.navigateByUrl).toHaveBeenCalledOnceWith('/dashboard');
     expect(c.isSubmitting).toBeFalse();
     expect(c.errorMessage).toBe('');
   }));
 
   const errosCasos: Array<[string, unknown, string]> = [
-    ['401',          new HttpErrorResponse({ status: 401 }), 'Usuário ou senha inválidos.'],
+    ['401',          new HttpErrorResponse({ status: 401 }), 'Usuário não encontrado.'],
     ['503',          new HttpErrorResponse({ status: 503 }), 'Falha ao autenticar (503).'],
     ['Error',        new Error('Timeout'),                   'Timeout'],
     ['desconhecido', 'algo',                                 'Nao foi possivel autenticar.'],
@@ -77,7 +75,7 @@ describe('LoginPageComponent', () => {
   errosCasos.forEach(([label, err, expected]) => {
     it(`exibe mensagem correta para erro ${label}`, fakeAsync(() => {
       authServiceSpy.login.and.rejectWith(err);
-      c.email = 'a@b'; c.password = 'senha';
+      c.email = 'a@b';
       c.submit();
       tick();
       expect(c.errorMessage).toBe(expected);

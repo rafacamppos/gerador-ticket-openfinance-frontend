@@ -17,13 +17,12 @@ export class LoginPageComponent {
   private readonly router = inject(Router);
 
   protected email = '';
-  protected password = '';
   protected isSubmitting = false;
   protected errorMessage = '';
 
   protected async submit(): Promise<void> {
-    if (!this.email.trim() || !this.password) {
-      this.errorMessage = 'Informe e-mail e senha.';
+    if (!this.email.trim()) {
+      this.errorMessage = 'Informe seu e-mail.';
       return;
     }
 
@@ -31,11 +30,11 @@ export class LoginPageComponent {
     this.errorMessage = '';
 
     try {
-      await this.authService.login(this.email.trim(), this.password);
+      await this.authService.login(this.email.trim(), '');
       await this.router.navigateByUrl(this.authService.getHomeRoute());
     } catch (error) {
       if (error instanceof HttpErrorResponse && error.status === 401) {
-        this.errorMessage = 'Usuário ou senha inválidos.';
+        this.errorMessage = 'Usuário não encontrado.';
       } else if (error instanceof HttpErrorResponse) {
         this.errorMessage = `Falha ao autenticar (${error.status}).`;
       } else {

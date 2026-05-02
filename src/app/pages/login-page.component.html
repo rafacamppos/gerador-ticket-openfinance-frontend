@@ -21,17 +21,6 @@
       />
     </label>
 
-    <label class="login-card__field">
-      <span>Senha</span>
-      <input
-        type="password"
-        name="password"
-        [(ngModel)]="password"
-        autocomplete="current-password"
-        placeholder="Digite sua senha"
-      />
-    </label>
-
     @if (errorMessage) {
       <div class="login-card__error">{{ errorMessage }}</div>
     }
