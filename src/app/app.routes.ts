@@ -5,6 +5,7 @@ import { ownerAccessGuard } from './guards/owner-access.guard';
 
 import { ApplicationIncidentDetailPageComponent } from './pages/application-incident-detail-page.component';
 import { ApplicationIncidentsPageComponent } from './pages/application-incidents-page.component';
+import { CategoriesPageComponent, CategoriesGlobalPageComponent } from './modules/categories';
 import { TicketDashboardPageComponent } from './pages/ticket-dashboard-page.component';
 import { TicketDetailPageComponent } from './pages/ticket-detail-page.component';
 import { LoginPageComponent } from './pages/login-page.component';
@@ -38,6 +39,16 @@ export const routes: Routes = [
   {
     path: 'areas/:ownerSlug/incidentes-aplicacoes/:incidentId',
     component: ApplicationIncidentDetailPageComponent,
+    canActivate: [authGuard, ownerAccessGuard],
+  },
+  {
+    path: 'categorias',
+    component: CategoriesGlobalPageComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'areas/:ownerSlug/categorias',
+    component: CategoriesPageComponent,
     canActivate: [authGuard, ownerAccessGuard],
   },
   {

@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { OWNER_TITLES } from '../ticket-owners';
 
 type TeamMenuItem = {
-  key: 'tickets' | 'incidents';
+  key: 'tickets' | 'incidents' | 'categories';
   label: string;
   href: string;
 };
@@ -18,7 +18,7 @@ type TeamMenuItem = {
 })
 export class TeamWorkspaceHeaderComponent {
   @Input({ required: true }) ownerSlug = '';
-  @Input({ required: true }) activeMenu: 'tickets' | 'incidents' = 'tickets';
+  @Input({ required: true }) activeMenu: 'tickets' | 'incidents' | 'categories' = 'tickets';
 
   protected readonly ownerTitle = computed(
     () => OWNER_TITLES[this.ownerSlug] ?? 'Area de Tickets'

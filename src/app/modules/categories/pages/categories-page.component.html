@@ -1,0 +1,99 @@
+<section class="dashboard">
+  <div class="dashboard__primary dashboard__primary--full">
+    <app-team-workspace-header
+      [ownerSlug]="ownerSlug()"
+      activeMenu="categories"
+    />
+
+    <article class="widget">
+      <header class="widget__header">
+        <div class="widget__header-main">
+          <div class="widget__titleBlock">
+            <span>Dashboard Categorias</span>
+            <small>Consulte as categorias de templates disponíveis para sua equipe.</small>
+          </div>
+          <button
+            type="button"
+            class="widget__refreshButton"
+            (click)="loadCategories()"
+            [disabled]="isLoading"
+            aria-label="Atualizar categorias"
+            title="Atualizar categorias"
+          >
+            <span class="widget__refreshIcon" aria-hidden="true">&#x21bb;</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="categories-list-shell">
+        @if (isLoading) {
+          <div class="categories-loading">
+            <div class="spinner"></div>
+            <p>Carregando categorias...</p>
+          </div>
+        } @else if (errorMessage) {
+          <div class="categories-error">
+            <app-icon name="alert" [size]="24" />
+            <p>{{ errorMessage }}</p>
+            <button
+              type="button"
+              class="categories-error__button"
+              (click)="loadCategories()"
+            >
+              Tentar Novamente
+            </button>
+          </div>
+        } @else if (categories.length === 0) {
+          <div class="categories-empty">
+            <app-icon name="info" [size]="24" />
+            <p>Nenhuma categoria disponível no momento.</p>
+          </div>
+        } @else {
+          <div class="categories-list">
+            @for (type of [1, 10]; track type) {
+              @if (getCategoriesByType(type).length > 0) {
+                <div class="category-section">
+                  <h2 class="category-section__title">{{ getTypeLabel(type) }}</h2>
+                  <div class="categories-grid">
+                    @for (category of getCategoriesByType(type); track category.id) {
+                      <div class="category-card">
+                        <div class="category-card__header">
+                          <h3 class="category-card__title">
+                            {{ category.category_name }}
+                          </h3>
+                        </div>
+
+                        <div class="category-card__content">
+                          <div class="category-field">
+                            <span class="category-field__label">Subcategoria</span>
+                            <span class="category-field__value">
+                              {{ category.sub_category_name }}
+                            </span>
+                          </div>
+
+                          <div class="category-field">
+                            <span class="category-field__label">Detalhamento</span>
+                            <span class="category-field__value">
+                              {{ category.third_level_category_name }}
+                            </span>
+                          </div>
+
+                          <div class="category-field">
+                            <span class="category-field__label">Template</span>
+                            <span class="category-field__id">
+                              {{ category.template_id }}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        }
+      </section>
+    </article>
+  </div>
+</section>

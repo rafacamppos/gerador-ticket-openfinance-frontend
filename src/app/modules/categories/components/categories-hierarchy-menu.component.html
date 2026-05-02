@@ -1,0 +1,113 @@
+<div class="hierarchy-menu">
+  <div class="hierarchy-menu__header">
+    @if (level() > 1) {
+      <button
+        type="button"
+        class="hierarchy-menu__back"
+        (click)="goBack()"
+        aria-label="Voltar"
+      >
+        <span class="hierarchy-menu__backIcon" aria-hidden="true">←</span>
+      </button>
+    }
+    <h3 class="hierarchy-menu__title">{{ getTitle() }}</h3>
+    @if (level() > 1) {
+      <button
+        type="button"
+        class="hierarchy-menu__reset"
+        (click)="reset()"
+        aria-label="Recomeçar"
+        title="Voltar para o início"
+      >
+        <span aria-hidden="true">↻</span>
+      </button>
+    }
+  </div>
+
+  @if (errorMessage()) {
+    <div class="hierarchy-menu__error">
+      <app-icon name="alert" [size]="20" />
+      <p>{{ errorMessage() }}</p>
+    </div>
+  }
+
+  @if (level() === 1) {
+    <div class="hierarchy-menu__content">
+      @if (isLoadingLevel1()) {
+        <div class="hierarchy-menu__loading">
+          <div class="spinner"></div>
+          <p>Carregando categorias...</p>
+        </div>
+      } @else if (level1Items().length === 0) {
+        <div class="hierarchy-menu__empty">
+          <p>Nenhuma categoria disponível.</p>
+        </div>
+      } @else {
+        <div class="hierarchy-menu__items">
+          @for (item of level1Items(); track item) {
+            <button
+              type="button"
+              class="hierarchy-menu__item"
+              (click)="selectLevel1(item)"
+            >
+              <span class="hierarchy-menu__itemLabel">{{ item }}</span>
+              <span class="hierarchy-menu__itemArrow" aria-hidden="true">→</span>
+            </button>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  @if (level() === 2) {
+    <div class="hierarchy-menu__content">
+      @if (isLoadingLevel2()) {
+        <div class="hierarchy-menu__loading">
+          <div class="spinner"></div>
+          <p>Carregando subcategorias...</p>
+        </div>
+      } @else if (level2Items().length === 0) {
+        <div class="hierarchy-menu__empty">
+          <p>Nenhuma subcategoria disponível.</p>
+        </div>
+      } @else {
+        <div class="hierarchy-menu__items">
+          @for (item of level2Items(); track item) {
+            <button
+              type="button"
+              class="hierarchy-menu__item"
+              (click)="selectLevel2(item)"
+            >
+              <span class="hierarchy-menu__itemLabel">{{ item }}</span>
+              <span class="hierarchy-menu__itemArrow" aria-hidden="true">→</span>
+            </button>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  @if (level() === 3) {
+    <div class="hierarchy-menu__content">
+      @if (isLoadingLevel3()) {
+        <div class="hierarchy-menu__loading">
+          <div class="spinner"></div>
+          <p>Carregando detalhamento...</p>
+        </div>
+      } @else if (level3Items().length === 0) {
+        <div class="hierarchy-menu__empty">
+          <p>Nenhum item disponível.</p>
+        </div>
+      } @else {
+        <div class="hierarchy-menu__items">
+          @for (item of level3Items(); track item) {
+            <div class="hierarchy-menu__item hierarchy-menu__item--final">
+              <span class="hierarchy-menu__itemLabel">{{ item }}</span>
+              <span class="hierarchy-menu__itemIcon" aria-hidden="true">✓</span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
