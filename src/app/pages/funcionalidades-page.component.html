@@ -1,0 +1,185 @@
+<section class="dashboard">
+  <div class="dashboard__primary dashboard__primary--full">
+    <div class="global-header">
+      <div class="global-header__toolbar">
+        <a
+          class="global-header__back"
+          routerLink="/dashboard"
+          aria-label="Voltar para o dashboard"
+        >
+          <span class="global-header__backIcon" aria-hidden="true">←</span>
+          <span>Voltar</span>
+        </a>
+      </div>
+
+      <div class="global-header__hero">
+        <div class="global-header__area">OpenFinance - Santander</div>
+        <h1 class="global-header__title">Categorias de Incidente</h1>
+      </div>
+    </div>
+
+    <article class="widget">
+      <header class="widget__header">
+        <div class="widget__header-main">
+          <div class="widget__titleBlock">
+            <span>Consulta de Categorias</span>
+            <small>Consulte as categorias disponíveis para incidente ou requisição</small>
+          </div>
+          <button
+            type="button"
+            class="widget__refreshButton"
+            (click)="loadCategories()"
+            [disabled]="isLoading()"
+            aria-label="Atualizar categorias"
+            title="Atualizar categorias"
+          >
+            <span class="widget__refreshIcon" aria-hidden="true">&#x21bb;</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="funcionalidades-shell">
+        <div class="funcionalidades-search">
+          <div class="search-box">
+            <input
+              type="text"
+              class="search-box__input"
+              placeholder="Buscar por ID de categoria..."
+              [value]="searchQuery()"
+              #searchInput
+              (input)="onSearch(searchInput.value)"
+              aria-label="Campo de busca"
+            />
+            @if (searchQuery()) {
+              <button
+                type="button"
+                class="search-box__clear"
+                (click)="clearSearch()"
+                aria-label="Limpar busca"
+              >
+                <span aria-hidden="true">✕</span>
+              </button>
+            }
+          </div>
+          <div class="search-info">
+            <span class="search-info__count">{{ displayedCategories().length }} categoria(s)</span>
+          </div>
+        </div>
+
+        @if (notFoundMessage()) {
+          <div class="funcionalidades-info">
+            <app-icon name="info" [size]="24" />
+            <p>{{ notFoundMessage() }}</p>
+          </div>
+        }
+
+        @if (errorMessage()) {
+          <div class="funcionalidades-error">
+            <app-icon name="alert" [size]="24" />
+            <p>{{ errorMessage() }}</p>
+            <button
+              type="button"
+              class="funcionalidades-error__button"
+              (click)="loadCategories()"
+            >
+              Tentar Novamente
+            </button>
+          </div>
+        } @else if (isLoading()) {
+          <div class="funcionalidades-loading">
+            <div class="spinner"></div>
+            <p>Carregando categorias...</p>
+          </div>
+        } @else if (displayedCategories().length === 0) {
+          <div class="funcionalidades-empty">
+            <app-icon name="info" [size]="24" />
+            <p>{{ searchQuery() ? 'Nenhuma categoria encontrada.' : 'Nenhuma categoria disponível.' }}</p>
+          </div>
+        } @else {
+          <div class="categories-table">
+            <div class="table-header">
+              <div class="table-header__cell table-header__cell--id">ID</div>
+              <div class="table-header__cell table-header__cell--category">Categoria</div>
+              <div class="table-header__cell table-header__cell--subcategory">Subcategoria</div>
+              <div class="table-header__cell table-header__cell--third">Detalhamento</div>
+              <div class="table-header__cell table-header__cell--template">Template</div>
+              <div class="table-header__cell table-header__cell--type">Tipo</div>
+            </div>
+
+            <div class="table-body">
+              @for (category of paginatedCategories(); track category.id) {
+                <div class="table-row">
+                  <div class="table-cell table-cell--id">
+                    <span class="table-cell__badge">{{ category.id }}</span>
+                  </div>
+                  <div class="table-cell table-cell--category">
+                    {{ category.category_name }}
+                  </div>
+                  <div class="table-cell table-cell--subcategory">
+                    {{ category.sub_category_name }}
+                  </div>
+                  <div class="table-cell table-cell--third">
+                    {{ category.third_level_category_name }}
+                  </div>
+                  <div class="table-cell table-cell--template">
+                    <span class="table-cell__template">{{ category.template_id }}</span>
+                  </div>
+                  <div class="table-cell table-cell--type">
+                    <span
+                      class="table-cell__type"
+                      [class.table-cell__type--incident]="category.type === 1"
+                      [class.table-cell__type--request]="category.type === 10"
+                    >
+                      {{ category.type === 1 ? 'Incidente' : 'Requisição' }}
+                    </span>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <div class="table-footer">
+              @if (displayedCategories().length > itemsPerPage) {
+                <div class="categories-pagination">
+                  <button
+                    type="button"
+                    class="categories-pagination__button"
+                    (click)="previousPage()"
+                    [disabled]="currentPage() === 1"
+                  >
+                    Anterior
+                  </button>
+
+                  <div class="categories-pagination__pages">
+                    @for (page of pageNumbers(); track page) {
+                      @if (page === 0) {
+                        <span class="categories-pagination__ellipsis">...</span>
+                      } @else {
+                        <button
+                          type="button"
+                          class="categories-pagination__page"
+                          [class.categories-pagination__page--active]="page === currentPage()"
+                          (click)="goToPage(page)"
+                        >
+                          {{ page }}
+                        </button>
+                      }
+                    }
+                  </div>
+
+                  <button
+                    type="button"
+                    class="categories-pagination__button"
+                    (click)="nextPage()"
+                    [disabled]="currentPage() === totalPages()"
+                  >
+                    Próxima
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </section>
+    </article>
+  </div>
+</section>

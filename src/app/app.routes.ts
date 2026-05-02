@@ -10,6 +10,7 @@ import { TicketDashboardPageComponent } from './pages/ticket-dashboard-page.comp
 import { TicketDetailPageComponent } from './pages/ticket-detail-page.component';
 import { LoginPageComponent } from './pages/login-page.component';
 import { TicketOwnerPageComponent } from './pages/ticket-owner-page.component';
+import { FuncionalidadesPageComponent } from './pages/funcionalidades-page.component';
 
 export const routes: Routes = [
   {
@@ -40,6 +41,11 @@ export const routes: Routes = [
     path: 'areas/:ownerSlug/incidentes-aplicacoes/:incidentId',
     component: ApplicationIncidentDetailPageComponent,
     canActivate: [authGuard, ownerAccessGuard],
+  },
+  {
+    path: 'funcionalidades',
+    component: FuncionalidadesPageComponent,
+    canActivate: [authGuard],
   },
   {
     path: 'categorias',

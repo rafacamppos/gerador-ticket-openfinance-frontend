@@ -30,7 +30,7 @@ export class LoginPageComponent {
     this.errorMessage = '';
 
     try {
-      await this.authService.login(this.email.trim(), '');
+      await this.authService.login(this.email.trim());
       await this.router.navigateByUrl(this.authService.getHomeRoute());
     } catch (error) {
       if (error instanceof HttpErrorResponse && error.status === 401) {

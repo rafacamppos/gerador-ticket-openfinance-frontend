@@ -307,11 +307,11 @@ export class OpenFinanceApiService {
     );
   }
 
-  async login(email: string, password: string): Promise<PortalUser> {
+  async login(email: string): Promise<PortalUser> {
     return firstValueFrom(
       this.http.post<PortalUser>(
         `${this.apiBaseUrl}/auth/login`,
-        { email, password },
+        { email },
         {
           withCredentials: true,
         }

@@ -47,8 +47,8 @@ export class PortalAuthService {
     return Boolean(ownerSlug) && ownerSlug === this.getTeamSlug();
   }
 
-  async login(email: string, password: string): Promise<PortalUser> {
-    const user = await this.api.login(email, password);
+  async login(email: string): Promise<PortalUser> {
+    const user = await this.api.login(email);
     this.ticketService.clearCache();
     this.storeUser(user);
     await this.preloadKnownTickets(user);
