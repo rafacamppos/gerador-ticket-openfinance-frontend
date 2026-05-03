@@ -15,3 +15,7 @@ export interface CategoriesListResponse {
 export interface CategoryDetailResponse {
   data: Category;
 }
+
+export interface TemplatePayloadResponse {
+  data: { [key: string]: string };
+}

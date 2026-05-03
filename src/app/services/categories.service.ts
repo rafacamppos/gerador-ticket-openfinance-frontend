@@ -20,6 +20,10 @@ export interface CategoryDetailResponse {
   data: Category;
 }
 
+export interface TemplatePayloadResponse {
+  data: { [key: string]: string };
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -33,5 +37,9 @@ export class CategoriesService {
 
   getCategoryById(categoryId: number): Observable<CategoryDetailResponse> {
     return this.http.get<CategoryDetailResponse>(`${this.apiBaseUrl}/categories/${categoryId}`);
+  }
+
+  getTemplatePayload(templateId: number): Observable<TemplatePayloadResponse> {
+    return this.http.get<TemplatePayloadResponse>(`${this.apiBaseUrl}/templates/${templateId}/payload`);
   }
 }

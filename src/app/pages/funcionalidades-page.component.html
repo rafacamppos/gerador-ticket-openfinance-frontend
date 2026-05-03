@@ -122,7 +122,16 @@
                     {{ category.third_level_category_name }}
                   </div>
                   <div class="table-cell table-cell--template">
-                    <span class="table-cell__template">{{ category.template_id }}</span>
+                    <button
+                      type="button"
+                      class="table-cell__template-button"
+                      (click)="loadTemplatePayload(category.template_id)"
+                      [disabled]="templatePayloadLoading()"
+                      title="Copiar payload do template"
+                      [attr.aria-label]="'Copiar payload do template ' + category.template_id"
+                    >
+                      {{ category.template_id }}
+                    </button>
                   </div>
                   <div class="table-cell table-cell--type">
                     <span
@@ -173,6 +182,62 @@
                     [disabled]="currentPage() === totalPages()"
                   >
                     Próxima
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        @if (selectedTemplateId() !== null) {
+          <div class="payload-modal-overlay" (click)="closeTemplatePayload()">
+            <div class="payload-modal" (click)="$event.stopPropagation()">
+              <div class="payload-modal__header">
+                <h2>Payload do Template {{ selectedTemplateId() }}</h2>
+                <button
+                  type="button"
+                  class="payload-modal__close"
+                  (click)="closeTemplatePayload()"
+                  aria-label="Fechar"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div class="payload-modal__content">
+                @if (templatePayloadLoading()) {
+                  <div class="payload-loading">
+                    <div class="spinner"></div>
+                    <p>Carregando payload...</p>
+                  </div>
+                } @else if (templatePayloadError()) {
+                  <div class="payload-error">
+                    <app-icon name="alert" [size]="24" />
+                    <p>{{ templatePayloadError() }}</p>
+                  </div>
+                } @else if (templatePayload()) {
+                  <div class="payload-display">
+                    <pre class="payload-json">{{ getPayloadAsJson() }}</pre>
+                  </div>
+                }
+              </div>
+
+              @if (templatePayload() && !templatePayloadLoading() && !templatePayloadError()) {
+                <div class="payload-modal__footer">
+                  <button
+                    type="button"
+                    class="payload-copy-button"
+                    (click)="copyPayloadToClipboard()"
+                    [class.payload-copy-button--copied]="payloadCopied()"
+                  >
+                    {{ payloadCopied() ? '✓ Copiado!' : 'Copiar Payload' }}
+                  </button>
+                  <button
+                    type="button"
+                    class="payload-close-button"
+                    (click)="closeTemplatePayload()"
+                  >
+                    Fechar
                   </button>
                 </div>
               }

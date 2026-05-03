@@ -6,7 +6,7 @@ import { debounceTime, Subject } from 'rxjs';
 
 import { IconComponent } from '../components/icon.component';
 import { CategoriesService } from '../modules/categories/services/categories.service';
-import { Category } from '../modules/categories/models/category.model';
+import { Category, TemplatePayloadResponse, CategoryDetailResponse, CategoriesListResponse } from '../modules/categories/models/category.model';
 
 @Component({
   selector: 'app-funcionalidades-page',
@@ -27,6 +27,12 @@ export class FuncionalidadesPageComponent implements OnInit {
   protected readonly currentPage = signal(1);
   protected readonly itemsPerPage = 10;
   protected readonly notFoundMessage = signal('');
+
+  protected readonly selectedTemplateId = signal<number | null>(null);
+  protected readonly templatePayload = signal<{ [key: string]: string } | null>(null);
+  protected readonly templatePayloadLoading = signal(false);
+  protected readonly templatePayloadError = signal('');
+  protected readonly payloadCopied = signal(false);
 
   protected readonly paginatedCategories = computed(() => {
     const categories = this.displayedCategories();
@@ -91,13 +97,13 @@ export class FuncionalidadesPageComponent implements OnInit {
 
     console.log('🔄 Carregando todas as categorias...');
     this.categoriesService.listCategories().subscribe({
-      next: (response) => {
+      next: (response: CategoriesListResponse) => {
         console.log('✅ Categorias carregadas:', response.data.length);
         this.allCategories.set(response.data);
         this.displayedCategories.set(response.data);
         this.isLoading.set(false);
       },
-      error: (error) => {
+      error: (error: Error) => {
         console.error('❌ Erro ao carregar categorias:', error);
         this.errorMessage.set('Erro ao carregar categorias. Tente novamente.');
         this.isLoading.set(false);
@@ -135,12 +141,12 @@ export class FuncionalidadesPageComponent implements OnInit {
 
     console.log('🔄 Buscando categoria por ID:', categoryId);
     this.categoriesService.getCategoryById(Number(categoryId)).subscribe({
-      next: (response) => {
+      next: (response: CategoryDetailResponse) => {
         console.log('✅ Categoria encontrada:', response.data);
         this.displayedCategories.set([response.data]);
         this.isLoading.set(false);
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('❌ Erro ao buscar categoria:', error);
         this.displayedCategories.set(this.allCategories());
         if (error.status === 404) {
@@ -171,5 +177,59 @@ export class FuncionalidadesPageComponent implements OnInit {
 
   protected nextPage(): void {
     this.goToPage(this.currentPage() + 1);
+  }
+
+  protected loadTemplatePayload(templateId: number): void {
+    this.selectedTemplateId.set(templateId);
+    this.templatePayloadLoading.set(true);
+    this.templatePayloadError.set('');
+    this.templatePayload.set(null);
+    this.payloadCopied.set(false);
+
+    console.log('🔄 Carregando payload do template:', templateId);
+    this.categoriesService.getTemplatePayload(templateId).subscribe({
+      next: (response: TemplatePayloadResponse) => {
+        console.log('✅ Payload carregado:', response.data);
+        this.templatePayload.set(response.data);
+        this.templatePayloadLoading.set(false);
+      },
+      error: (error: any) => {
+        console.error('❌ Erro ao carregar payload:', error);
+        this.templatePayloadError.set('Erro ao carregar payload do template. Tente novamente.');
+        this.templatePayloadLoading.set(false);
+      },
+    });
+  }
+
+  protected closeTemplatePayload(): void {
+    this.selectedTemplateId.set(null);
+    this.templatePayload.set(null);
+    this.templatePayloadError.set('');
+    this.payloadCopied.set(false);
+  }
+
+  protected copyPayloadToClipboard(): void {
+    const payload = this.templatePayload();
+    if (!payload) return;
+
+    const jsonString = JSON.stringify({ data: payload }, null, 2);
+
+    navigator.clipboard.writeText(jsonString).then(() => {
+      console.log('✅ Payload copiado para clipboard');
+      this.payloadCopied.set(true);
+
+      setTimeout(() => {
+        this.payloadCopied.set(false);
+      }, 2000);
+    }).catch((error) => {
+      console.error('❌ Erro ao copiar payload:', error);
+      this.templatePayloadError.set('Erro ao copiar payload. Tente novamente.');
+    });
+  }
+
+  protected getPayloadAsJson(): string {
+    const payload = this.templatePayload();
+    if (!payload) return '';
+    return JSON.stringify({ data: payload }, null, 2);
   }
 }

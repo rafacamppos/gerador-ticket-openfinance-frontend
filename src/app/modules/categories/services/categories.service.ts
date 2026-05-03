@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
-import { Category, CategoriesListResponse, CategoryDetailResponse } from '../models/category.model';
+import { Category, CategoriesListResponse, CategoryDetailResponse, TemplatePayloadResponse } from '../models/category.model';
 
 @Injectable({
   providedIn: 'root',
@@ -22,5 +22,11 @@ export class CategoriesService {
     const url = `${this.apiBaseUrl}/categories/${categoryId}`;
     console.log('📡 GET:', url);
     return this.http.get<CategoryDetailResponse>(url);
+  }
+
+  getTemplatePayload(templateId: number): Observable<TemplatePayloadResponse> {
+    const url = `${this.apiBaseUrl}/templates/${templateId}/payload`;
+    console.log('📡 GET:', url);
+    return this.http.get<TemplatePayloadResponse>(url);
   }
 }
