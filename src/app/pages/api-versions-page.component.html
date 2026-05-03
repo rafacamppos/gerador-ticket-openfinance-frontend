@@ -1,0 +1,168 @@
+<section class="dashboard">
+  <div class="dashboard__primary dashboard__primary--full">
+    <div class="global-header">
+      <div class="global-header__toolbar">
+        <a
+          class="global-header__back"
+          routerLink="/dashboard"
+          aria-label="Voltar para o dashboard"
+        >
+          <span class="global-header__backIcon" aria-hidden="true">←</span>
+          <span>Voltar</span>
+        </a>
+      </div>
+
+      <div class="global-header__hero">
+        <div class="global-header__area">OpenFinance - Santander</div>
+        <h1 class="global-header__title">Versões de APIs</h1>
+      </div>
+    </div>
+
+    <article class="widget">
+      <header class="widget__header">
+        <div class="widget__header-main">
+          <div class="widget__titleBlock">
+            <span>Consulta de Versões</span>
+            <small>Consulte todas as versões de APIs disponíveis no OpenFinance</small>
+          </div>
+          <button
+            type="button"
+            class="widget__refreshButton"
+            (click)="loadApiVersions()"
+            [disabled]="isLoading()"
+            aria-label="Atualizar versões"
+            title="Atualizar versões"
+          >
+            <span class="widget__refreshIcon" aria-hidden="true">&#x21bb;</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="funcionalidades-shell">
+        <div class="funcionalidades-search">
+          <div class="search-box">
+            <input
+              type="text"
+              class="search-box__input"
+              placeholder="Buscar por nome, versão, feature ou estágio..."
+              [value]="searchQuery()"
+              #searchInput
+              (input)="onSearch(searchInput.value)"
+              aria-label="Campo de busca"
+            />
+            @if (searchQuery()) {
+              <button
+                type="button"
+                class="search-box__clear"
+                (click)="clearSearch()"
+                aria-label="Limpar busca"
+              >
+                <span aria-hidden="true">✕</span>
+              </button>
+            }
+          </div>
+          <div class="search-info">
+            <span class="search-info__count">{{ displayedVersions().length }} versão(s)</span>
+          </div>
+        </div>
+
+        @if (errorMessage()) {
+          <div class="funcionalidades-error">
+            <app-icon name="alert" [size]="24" />
+            <p>{{ errorMessage() }}</p>
+            <button
+              type="button"
+              class="funcionalidades-error__button"
+              (click)="loadApiVersions()"
+            >
+              Tentar Novamente
+            </button>
+          </div>
+        } @else if (isLoading()) {
+          <div class="funcionalidades-loading">
+            <div class="spinner"></div>
+            <p>Carregando versões...</p>
+          </div>
+        } @else if (displayedVersions().length === 0) {
+          <div class="funcionalidades-empty">
+            <app-icon name="info" [size]="24" />
+            <p>{{ searchQuery() ? 'Nenhuma versão encontrada.' : 'Nenhuma versão disponível.' }}</p>
+          </div>
+        } @else {
+          <div class="versions-table">
+            <div class="table-header">
+              <div class="table-header__cell table-header__cell--id">ID</div>
+              <div class="table-header__cell table-header__cell--name">Nome da API</div>
+              <div class="table-header__cell table-header__cell--version">Versão</div>
+              <div class="table-header__cell table-header__cell--feature">Feature</div>
+              <div class="table-header__cell table-header__cell--stage">Estágio</div>
+            </div>
+
+            <div class="table-body">
+              @for (version of paginatedVersions(); track version.id) {
+                <div class="table-row">
+                  <div class="table-cell table-cell--id">
+                    <span class="table-cell__badge">{{ version.id }}</span>
+                  </div>
+                  <div class="table-cell table-cell--name">
+                    {{ version.api_name_version }}
+                  </div>
+                  <div class="table-cell table-cell--version">
+                    <span class="table-cell__version">{{ version.api_version }}</span>
+                  </div>
+                  <div class="table-cell table-cell--feature">
+                    {{ version.product_feature }}
+                  </div>
+                  <div class="table-cell table-cell--stage">
+                    {{ version.stage_name_version }}
+                  </div>
+                </div>
+              }
+            </div>
+
+            <div class="table-footer">
+              @if (displayedVersions().length > itemsPerPage) {
+                <div class="versions-pagination">
+                  <button
+                    type="button"
+                    class="versions-pagination__button"
+                    (click)="previousPage()"
+                    [disabled]="currentPage() === 1"
+                  >
+                    Anterior
+                  </button>
+
+                  <div class="versions-pagination__pages">
+                    @for (page of pageNumbers(); track page) {
+                      @if (page === 0) {
+                        <span class="versions-pagination__ellipsis">...</span>
+                      } @else {
+                        <button
+                          type="button"
+                          class="versions-pagination__page"
+                          [class.versions-pagination__page--active]="page === currentPage()"
+                          (click)="goToPage(page)"
+                        >
+                          {{ page }}
+                        </button>
+                      }
+                    }
+                  </div>
+
+                  <button
+                    type="button"
+                    class="versions-pagination__button"
+                    (click)="nextPage()"
+                    [disabled]="currentPage() === totalPages()"
+                  >
+                    Próxima
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </section>
+    </article>
+  </div>
+</section>

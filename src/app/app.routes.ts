@@ -11,6 +11,7 @@ import { TicketDetailPageComponent } from './pages/ticket-detail-page.component'
 import { LoginPageComponent } from './pages/login-page.component';
 import { TicketOwnerPageComponent } from './pages/ticket-owner-page.component';
 import { FuncionalidadesPageComponent } from './pages/funcionalidades-page.component';
+import { ApiVersionsPageComponent } from './pages/api-versions-page.component';
 
 export const routes: Routes = [
   {
@@ -45,6 +46,11 @@ export const routes: Routes = [
   {
     path: 'funcionalidades',
     component: FuncionalidadesPageComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'versoes-apis',
+    component: ApiVersionsPageComponent,
     canActivate: [authGuard],
   },
   {
