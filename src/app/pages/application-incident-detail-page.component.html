@@ -138,7 +138,10 @@
                 <div><strong>Subcategoria:</strong> {{ formatValue(incident.ticket_context.sub_category_name) }}</div>
                 <div><strong>Nível 3:</strong> {{ formatValue(incident.ticket_context.third_level_category_name) }}</div>
                 <div><strong>API:</strong> {{ formatValue(incident.endpoint) }}</div>
+                <div><strong>Nome da API:</strong> {{ formatValue(incident.ticket_context.api_name_version) }}</div>
                 <div><strong>Versão:</strong> {{ formatValue(incident.ticket_context.api_version) }}</div>
+                <div><strong>Funcionalidade:</strong> {{ formatValue(incident.ticket_context.product_feature) }}</div>
+                <div><strong>Stage:</strong> {{ formatValue(incident.ticket_context.stage_name_version) }}</div>
               </div>
             </section>
           }
@@ -215,36 +218,88 @@
               ></textarea>
             </label>
 
+            <label class="ticket-create-modal__field">
+              <span>Nome da API</span>
+              <input
+                type="text"
+                [(ngModel)]="ticketForm.api_name_version"
+                name="apiNameVersion"
+                disabled
+              />
+            </label>
+
+            <label class="ticket-create-modal__field">
+              <span>Versão da API</span>
+              <input
+                type="text"
+                [(ngModel)]="ticketForm.api_version"
+                name="apiVersion"
+                disabled
+              />
+            </label>
+
+            <label class="ticket-create-modal__field">
+              <span>Funcionalidade</span>
+              <input
+                type="text"
+                [(ngModel)]="ticketForm.product_feature"
+                name="productFeature"
+                disabled
+              />
+            </label>
+
+            <label class="ticket-create-modal__field">
+              <span>Stage</span>
+              <input
+                type="text"
+                [(ngModel)]="ticketForm.stage_name_version"
+                name="stageName"
+                disabled
+              />
+            </label>
+
+            <label class="ticket-create-modal__field">
+              <span>Código HTTP da Resposta</span>
+              <input
+                type="text"
+                [(ngModel)]="ticketForm.http_status_code"
+                name="httpStatusCode"
+                disabled
+              />
+            </label>
+
             @if (ticketPreview.template_fields.length > 0) {
               <div class="ticket-create-modal__field ticket-create-modal__field--full ticket-create-modal__section-label">
                 Campos do template
               </div>
 
               @for (field of ticketPreview.template_fields; track field.key; let i = $index) {
-                <label class="ticket-create-modal__field">
-                  <span>
-                    {{ field.label }}
-                    @if (field.required) {
-                      <span class="ticket-create-modal__required">*</span>
-                    }
-                  </span>
-                  @if (field.options) {
-                    <select
-                      [(ngModel)]="ticketForm.template_fields[i].value"
-                      [name]="'templateField_' + i"
-                    >
-                      @for (opt of field.options; track opt) {
-                        <option [value]="opt">{{ opt }}</option>
+                @if (field.key !== 'CustomColumn229sr' && field.key !== 'title' && field.key !== 'description') {
+                  <label class="ticket-create-modal__field">
+                    <span>
+                      {{ field.label }}
+                      @if (field.required) {
+                        <span class="ticket-create-modal__required">*</span>
                       }
-                    </select>
-                  } @else {
-                    <input
-                      type="text"
-                      [(ngModel)]="ticketForm.template_fields[i].value"
-                      [name]="'templateField_' + i"
-                    />
-                  }
-                </label>
+                    </span>
+                    @if (field.options) {
+                      <select
+                        [(ngModel)]="ticketForm.template_fields[i].value"
+                        [name]="'templateField_' + i"
+                      >
+                        @for (opt of field.options; track opt) {
+                          <option [value]="opt">{{ opt }}</option>
+                        }
+                      </select>
+                    } @else {
+                      <input
+                        type="text"
+                        [(ngModel)]="ticketForm.template_fields[i].value"
+                        [name]="'templateField_' + i"
+                      />
+                    }
+                  </label>
+                }
               }
             }
           </div>

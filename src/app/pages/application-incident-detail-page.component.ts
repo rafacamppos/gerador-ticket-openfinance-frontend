@@ -164,6 +164,11 @@ export class ApplicationIncidentDetailPageComponent implements OnInit {
         {
           title: this.ticketForm.title,
           description: this.ticketForm.description,
+          api_name_version: this.ticketForm.api_name_version,
+          api_version: this.ticketForm.api_version,
+          product_feature: this.ticketForm.product_feature,
+          stage_name_version: this.ticketForm.stage_name_version,
+          http_status_code: this.ticketForm.http_status_code,
           template_fields: this.ticketForm.template_fields,
         }
       );
@@ -289,14 +294,33 @@ export class ApplicationIncidentDetailPageComponent implements OnInit {
   private buildTicketForm(preview?: TicketPreview): {
     title: string;
     description: string;
+    api_name_version: string;
+    api_version: string;
+    product_feature: string;
+    stage_name_version: string;
+    http_status_code: string;
     template_fields: Array<{ key: string; value: string }>;
   } {
     if (!preview) {
-      return { title: '', description: '', template_fields: [] };
+      return {
+        title: '',
+        description: '',
+        api_name_version: '',
+        api_version: '',
+        product_feature: '',
+        stage_name_version: '',
+        http_status_code: '',
+        template_fields: [],
+      };
     }
     return {
       title: preview.title,
       description: preview.description,
+      api_name_version: this.incident?.ticket_context?.api_name_version || '',
+      api_version: this.incident?.ticket_context?.api_version || '',
+      product_feature: this.incident?.ticket_context?.product_feature || '',
+      stage_name_version: this.incident?.ticket_context?.stage_name_version || '',
+      http_status_code: String(this.incident?.http_status_code || ''),
       template_fields: preview.template_fields.map((f) => ({ key: f.key, value: f.value })),
     };
   }

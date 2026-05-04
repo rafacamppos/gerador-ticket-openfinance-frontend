@@ -109,6 +109,11 @@ export type TicketPreview = {
 export type CreateIncidentTicketPayload = {
   title?: string;
   description?: string;
+  api_name_version?: string;
+  api_version?: string;
+  product_feature?: string;
+  stage_name_version?: string;
+  http_status_code?: string;
   template_fields?: Array<{ key: string; value: string }>;
 };
 
